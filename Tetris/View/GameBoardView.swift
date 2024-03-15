@@ -17,7 +17,30 @@ struct GameBoardView: View {
             let boardHeight = blockSize * CGFloat(gameState.rows)
             
             ZStack {
-                // Draw the static blocks already placed on the game board
+                // Background for the grid to make grid lines visible on all backgrounds
+                Rectangle()
+                    .foregroundColor(.white.opacity(0.8))
+                    .frame(width: boardWidth, height: boardHeight)
+                    .border(Color.black, width: 3)
+                
+                // Grid lines
+                Path { path in
+                    // Vertical lines
+                    for column in 1..<gameState.columns {
+                        let x = blockSize * CGFloat(column)
+                        path.move(to: CGPoint(x: x, y: 0))
+                        path.addLine(to: CGPoint(x: x, y: boardHeight))
+                    }
+                    // Horizontal lines
+                    for row in 1..<gameState.rows {
+                        let y = blockSize * CGFloat(row)
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: boardWidth, y: y))
+                    }
+                }
+                .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                
+                // Static blocks already placed on the game board
                 ForEach(0..<gameState.rows, id: \.self) { row in
                     ForEach(0..<gameState.columns, id: \.self) { column in
                         if let color = gameState.board[row][column] {
@@ -30,7 +53,7 @@ struct GameBoardView: View {
                     }
                 }
                 
-                // Draw the current falling piece
+                // Current falling piece
                 if let piece = gameState.currentPiece {
                     ForEach(0..<piece.shape.count, id: \.self) { rowIndex in
                         ForEach(0..<piece.shape[rowIndex].count, id: \.self) { columnIndex in
@@ -46,8 +69,6 @@ struct GameBoardView: View {
                 }
             }
             .frame(width: boardWidth, height: boardHeight)
-            .background(.white.opacity(0.8))
-            .border(.black, width: 3)
         }
     }
 }
