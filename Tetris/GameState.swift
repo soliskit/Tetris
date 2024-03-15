@@ -19,12 +19,14 @@ class GameState {
     var board: [[Color?]]
     /// The current falling piece in the game.
     var currentPiece: TetrisPiece?
+    var nextPiece: TetrisPiece?
     var isGameOver: Bool = true
     var score: Int = 0
     
     // MARK: - Initialization
     init() {
         self.board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        self.nextPiece = TetrisPieceFactory.createPiece(columns: columns) // Generate the next piece in advance
     }
     
     // MARK: - Game Session
@@ -62,11 +64,14 @@ class GameState {
     /// Spawns a new Tetris piece at the top of the board.
     /// - Returns: A Boolean value indicating whether the new piece could be placed.
     private func spawnNewPiece() -> Bool {
-        let newPiece = TetrisPieceFactory.createPiece(columns: columns)
-        if isPositionValid(piece: newPiece, position: newPiece.position) {
-            currentPiece = newPiece
+        guard let nextPiece = nextPiece else { return false }
+        
+        if isPositionValid(piece: nextPiece, position: nextPiece.position) {
+            currentPiece = nextPiece
+            self.nextPiece = TetrisPieceFactory.createPiece(columns: columns) // Generate a new next piece
             return true
         } else {
+            gameOver()
             return false
         }
     }

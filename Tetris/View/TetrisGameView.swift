@@ -15,9 +15,19 @@ struct TetrisGameView: View {
         VStack {
             // MARK: - Score
             Text("Score: \(gameState.score)")
-                .font(.title)
-            Text("High Score: \(highScore)")
                 .font(.headline)
+            Text("High Score: \(highScore)")
+                .font(.caption)
+            
+            // MARK: - Next Piece
+            HStack {
+                Spacer()
+                if let nextPiece = gameState.nextPiece {
+                    NextPieceView(piece: nextPiece)
+                        .padding()
+                        .frame(width: 100, height: 100) // Adjust size as needed
+                }
+            }
             
             // MARK: - Game Board
             GameBoardView(gameState: gameState)
