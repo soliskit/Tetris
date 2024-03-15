@@ -46,8 +46,8 @@ struct GameBoardView: View {
                 }
             }
             .frame(width: boardWidth, height: boardHeight)
-            .background(Color.white.opacity(0.8))
-            .border(Color.black, width: 3)
+            .background(.white.opacity(0.8))
+            .border(.black, width: 3)
         }
     }
 }

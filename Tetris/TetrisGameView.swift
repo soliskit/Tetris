@@ -21,7 +21,7 @@ struct TetrisGameView: View {
             GameBoardView(gameState: gameState)
                 .aspectRatio(0.5, contentMode: .fit)
                 .padding()
-                .background(Color.black.opacity(0.5))
+                .background(.black.opacity(0.5))
                 .cornerRadius(10)
             
             // MARK: - Game Controls
@@ -75,7 +75,7 @@ struct TetrisGameView: View {
                     gameState.startGame()
                 }
                 .padding()
-                .background(Color.blue)
+                .background(.indigo)
                 .foregroundColor(.white)
                 .cornerRadius(8)
                 .font(.headline)
@@ -83,7 +83,7 @@ struct TetrisGameView: View {
             }
         }
         .padding()
-        .background(Color.teal.opacity(0.75))
+        .background(.teal.opacity(0.75))
         .cornerRadius(20)
         .padding()
         .onAppear {
