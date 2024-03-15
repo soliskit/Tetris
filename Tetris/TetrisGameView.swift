@@ -26,16 +26,6 @@ struct TetrisGameView: View {
             
             // Game controls
             HStack {
-                // Rotate piece button
-                Button(action: {
-                    gameState.rotatePiece()
-                }) {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(20)
-                }
-                .buttonStyle(GameControlButtonStyle())
                 
                 // Move piece left button
                 Button(action: {
@@ -53,6 +43,17 @@ struct TetrisGameView: View {
                     gameState.movePieceRight()
                 }) {
                     Image(systemName: "arrow.right")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .padding(20)
+                }
+                .buttonStyle(GameControlButtonStyle())
+                
+                // Rotate piece button
+                Button(action: {
+                    gameState.rotatePiece()
+                }) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .padding(20)
