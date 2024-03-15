@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TetrisGameView: View {
+    @AppStorage("highScore") private var highScore: Int = 0
     @State var gameState = GameState()
     
     var body: some View {
@@ -15,7 +16,8 @@ struct TetrisGameView: View {
             // MARK: - Score
             Text("Score: \(gameState.score)")
                 .font(.title)
-                .padding()
+            Text("High Score: \(highScore)")
+                .font(.headline)
             
             // MARK: - Game Board
             GameBoardView(gameState: gameState)
@@ -88,6 +90,11 @@ struct TetrisGameView: View {
         .padding()
         .onAppear {
             gameState.startGame()
+        }
+        .onChange(of: gameState.isGameOver) {
+            if gameState.score > highScore {
+                highScore = gameState.score
+            }
         }
     }
 }
