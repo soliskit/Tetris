@@ -8,11 +8,16 @@
 import SwiftUI
 import Combine
 
-class GameState: ObservableObject {
-    @Published var board: [[Color?]]
-    @Published var currentPiece: TetrisPiece?
-    @Published var isGameOver: Bool = true
-    @Published var score: Int = 0
+/// `GameState` manages the state of a Tetris game, including the game board, current piece, game status, and score.
+@Observable
+class GameState {
+    // MARK: - Properties
+    /// The game board represented as a 2D array of optional `Color` values, where `nil` indicates an empty space./
+    var board: [[Color?]]
+    /// The current falling piece in the game.
+    var currentPiece: TetrisPiece?
+    var isGameOver: Bool = true
+    var score: Int = 0
     private var gameTimer: Timer?
     let rows = 20
     let columns = 10

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TetrisGameView: View {
-    @StateObject var gameState = GameState()
+    @State var gameState = GameState()
     
     var body: some View {
         VStack {
