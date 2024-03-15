@@ -27,7 +27,7 @@ class GameState {
         self.board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
     }
     
-    // MARK: - Timer
+    // MARK: - Game Session
     /// Called at regular intervals by `gameTimer`. It moves the current piece down or locks it in place and checks for game over.
     @objc private func gameTick() {
         if !movePieceDownOrLock() {
