@@ -8,113 +8,79 @@
 import SwiftUI
 import Combine
 
-/// `GameState` manages the state of a Tetris game, including the game board, current piece, game status, and score.
+/// Manages the state of a Tetris game, including the game board, current piece, game status, and score.
 @Observable
 class GameState {
     // MARK: - Properties
+    /// Number of rows on the game board.
     let rows = 20
+    /// Number of columns on the game board.
     let columns = 10
+    /// Timer to move the current piece down at set intervals.
     private var gameTimer: Timer?
-    /// The game board represented as a 2D array of optional `Color` values, where `nil` indicates an empty space./
+    /// The game board, where nil represents an empty space and a Color represents a filled space.
     var board: [[Color?]]
-    /// The current falling piece in the game.
+    /// The currently falling Tetris piece.
     var currentPiece: TetrisPiece?
+    /// The next Tetris piece to be played.
     var nextPiece: TetrisPiece?
+    /// Indicates whether the game has ended.
     var isGameOver: Bool = true
+    /// Current score of the player.
     var score: Int = 0
     
     // MARK: - Initialization
     init() {
-        self.board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
-        self.nextPiece = TetrisPieceFactory.createPiece(columns: columns) // Generate the next piece in advance
+        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        prepareNextPiece()
     }
     
     // MARK: - Game Session
-    /// Called at regular intervals by `gameTimer`. It moves the current piece down or locks it in place and checks for game over.
+    
+    /// Advances the game state by either moving the current piece down or locking it in place and then preparing the next piece.
     @objc private func gameTick() {
-        if !movePieceDownOrLock() {
+        guard !isGameOver else { return }
+        if !movePieceDown() {
             lockPiece()
             removeCompletedLines()
-            if !spawnNewPiece() {
-                gameOver() // Game over is checked after attempting to spawn a new piece.
-            }
+            prepareNextPiece()
         }
     }
     
-    /// Starts or restarts the game by resetting the game state and spawning a new piece.
+    /// Starts or restarts the game by resetting the game state and starting the game timer.
     func startGame() {
-        isGameOver = false
-        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
-        score = 0
-        if !spawnNewPiece() {
-            gameOver()
-        } else {
-            gameTimer?.invalidate()
-            gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
-        }
+        resetGameState()
+        gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
     }
     
-    /// Ends the game and stops the game timer.
+    /// Ends the game by stopping the timer and setting the game over flag.
     private func gameOver() {
         isGameOver = true
         gameTimer?.invalidate()
     }
     
-    // MARK: - Piece Movement
-    /// Spawns a new Tetris piece at the top of the board.
-    /// - Returns: A Boolean value indicating whether the new piece could be placed.
-    private func spawnNewPiece() -> Bool {
-        guard let nextPiece = nextPiece else { return false }
+    // MARK: - Piece Management
+    
+    /// Prepares the current piece by using the next piece and then generates the next piece for future use. Ends the game if the current piece cannot be placed.
+    private func prepareNextPiece() {
+        currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
+        nextPiece = TetrisPieceFactory.createPiece(columns: columns)
         
-        if isPositionValid(piece: nextPiece, position: nextPiece.position) {
-            currentPiece = nextPiece
-            self.nextPiece = TetrisPieceFactory.createPiece(columns: columns) // Generate a new next piece
-            return true
-        } else {
+        if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
             gameOver()
-            return false
         }
     }
     
-    /// Checks if a given piece can be placed at a specified position without causing a collision.
-    /// - Parameters:
-    ///   - piece: The Tetris piece to check.
-    ///   - position: The position to check the piece against.
-    /// - Returns: A Boolean value indicating whether the position is valid.
-    private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
-        for (y, row) in piece.shape.enumerated() {
-            for (x, block) in row.enumerated() where block {
-                let boardX = Int(position.x) + x
-                let boardY = Int(position.y) + y
-                
-                // Check if the position is outside the left, right, or bottom boundaries of the board
-                if boardX < 0 || boardX >= columns || boardY >= rows {
-                    return false
-                }
-                
-                // If the position is above the board (negative y), it's considered valid
-                // This allows pieces to spawn partially offscreen
-                if boardY < 0 {
-                    continue
-                }
-                
-                // Check for overlap with existing blocks on the board
-                if board[boardY][boardX] != nil {
-                    return false
-                }
-            }
-        }
-        return true
-    }
+    // MARK: - Piece Movement & Rotation
     
-    /// Attempts to move the current piece down by one row or locks it in place if it cannot move further.
+    /// Attempts to move the current piece down by one row, returning true if successful.
+    /// If the piece cannot move down further, it locks the piece in place.
     /// - Returns: A Boolean value indicating whether the piece was successfully moved down.
-    func movePieceDownOrLock() -> Bool {
-        guard var piece = currentPiece, !isGameOver else { return false }
+    private func movePieceDown() -> Bool {
+        guard let piece = currentPiece else { return false }
         let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
         if isPositionValid(piece: piece, position: newPosition) {
-            piece.position = newPosition
-            currentPiece = piece
+            currentPiece?.position = newPosition
             return true
         } else {
             lockPiece()
@@ -123,71 +89,27 @@ class GameState {
         }
     }
     
-    /// Locks the current piece into the board, making it a permanent part of the game state, and checks for completed lines.
-    private func lockPiece() {
-        guard let piece = currentPiece else { return }
-        for (y, row) in piece.shape.enumerated() {
-            for (x, block) in row.enumerated() {
-                if block {
-                    let boardX = Int(piece.position.x) + x
-                    let boardY = Int(piece.position.y) + y
-                    board[boardY][boardX] = piece.color
-                }
-            }
-        }
-        currentPiece = nil
-        removeCompletedLines()
-    }
-    
-    /// Checks for and clears any complete lines from the board, updating the score accordingly.
-    private func removeCompletedLines() {
-        var linesCleared = [Int]() // Holds the indices of complete lines
-        
-        // Check each row to see if it's complete (no nil values)
-        for (index, row) in board.enumerated() {
-            if row.allSatisfy({ $0 != nil }) {
-                linesCleared.append(index)
-            }
-        }
-        
-        // For each cleared line, remove it from the board and add a new empty row at the top
-        for lineIndex in linesCleared.reversed() {
-            board.remove(at: lineIndex)
-            board.insert(Array(repeating: nil, count: columns), at: 0)
-        }
-        
-        // Update the score based on the number of lines cleared
-        // Scoring could be more sophisticated based on the number of lines cleared simultaneously
-        score += linesCleared.count * 100 // Example scoring: 100 points per line
-        
-        // If any lines were cleared, check if a new piece can be spawned or if the game is over
-        if !linesCleared.isEmpty {
-            if !spawnNewPiece() {
-                gameOver()
-            }
-        }
-    }
-    
-    // MARK: - Controls
     /// Moves the current piece one position to the left, if possible.
     func movePieceLeft() {
-        guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x - 1, y: piece.position.y)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-        }
+        movePiece(deltaX: -1)
     }
     
     /// Moves the current piece one position to the right, if possible.
     func movePieceRight() {
+        movePiece(deltaX: 1)
+    }
+    
+    /// Moves the current piece horizontally by the specified amount and updates its position if the move is valid.
+    /// - Parameter deltaX: The number of columns to move the piece horizontally. Negative for left, positive for right.
+    private func movePiece(deltaX: Int) {
         guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x + 1, y: piece.position.y)
+        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
         if isPositionValid(piece: piece, position: newPosition) {
             currentPiece?.position = newPosition
         }
     }
     
-    /// Rotates the current piece to its next rotation state, if possible.
+    /// Rotates the current piece to its next orientation, if the rotation is valid.
     func rotatePiece() {
         guard var piece = currentPiece, !isGameOver else { return }
         piece.rotate()
@@ -196,8 +118,74 @@ class GameState {
         }
     }
     
-    /// Drops the current piece to the lowest possible position immediately.
+    /// Drops the current piece to the lowest possible position immediately and then forces a game tick.
     func dropPiece() {
-        while movePieceDownOrLock() {}
+        while movePieceDown() {}
+        gameTick() // Force lock and prepare the next piece.
+    }
+    
+    // MARK: - Board & Score Management
+    
+    /// Locks the current piece into its position on the board, marking it as a permanent block, and then checks for completed lines.
+    private func lockPiece() {
+        guard let piece = currentPiece else { return }
+        for (y, row) in piece.shape.enumerated() {
+            for (x, block) in row.enumerated() where block {
+                let boardX = Int(piece.position.x) + x
+                let boardY = Int(piece.position.y) + y
+                if boardY >= 0 { // Ensure the block is within the board bounds
+                    board[boardY][boardX] = piece.color
+                }
+            }
+        }
+        removeCompletedLines()
+    }
+    
+    /// Checks each row of the board for completion (full row), clears them, and updates the score accordingly.
+    private func removeCompletedLines() {
+        let completedLines = board.indices.filter {
+            !board[$0].contains(nil)
+        }
+        completedLines.forEach { index in
+            board.remove(at: index)
+            board.insert(Array(repeating: nil, count: columns), at: 0)
+        }
+        // Update the score based on the number of completed lines, with a simple scoring rule.
+        score += completedLines.count * 100
+    }
+    
+    /// Validates if the specified position for a piece does not collide with existing blocks or the board's boundaries.
+    /// - Parameters:
+    ///   - piece: The Tetris piece to check for validity.
+    ///   - position: The position where the piece is attempting to move or rotate into.
+    /// - Returns: `true` if the position is valid (no collisions and within boundaries); otherwise, `false`.
+    private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
+        for (y, row) in piece.shape.enumerated() {
+            for (x, block) in row.enumerated() where block {
+                let boardX = Int(position.x) + x
+                let boardY = Int(position.y) + y
+                
+                // Boundary check
+                if boardX < 0 || boardX >= columns || boardY >= rows {
+                    return false
+                }
+                
+                // Overlap check with the existing pieces on the board
+                if boardY >= 0 && board[boardY][boardX] != nil {
+                    return false
+                }
+            }
+        }
+        return true
+    }
+    
+    // MARK: - Helper Functions
+    
+    /// Resets the game state to initial conditions, preparing for a new game.
+    private func resetGameState() {
+        isGameOver = false
+        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        score = 0
+        prepareNextPiece()
     }
 }
