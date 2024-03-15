@@ -86,7 +86,7 @@ struct TetrisGameView: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(Color.teal.opacity(0.75))
         .cornerRadius(20)
         .padding()
         .onAppear {
