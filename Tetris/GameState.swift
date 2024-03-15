@@ -12,22 +12,32 @@ import Combine
 @Observable
 class GameState {
     // MARK: - Properties
+    let rows = 20
+    let columns = 10
+    private var gameTimer: Timer?
     /// The game board represented as a 2D array of optional `Color` values, where `nil` indicates an empty space./
     var board: [[Color?]]
     /// The current falling piece in the game.
     var currentPiece: TetrisPiece?
     var isGameOver: Bool = true
     var score: Int = 0
-    private var gameTimer: Timer?
-    let rows = 20
-    let columns = 10
     
     // MARK: - Initialization
     init() {
         self.board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
     }
     
-    // MARK: - Controls
+    // MARK: - Timer
+    /// Called at regular intervals by `gameTimer`. It moves the current piece down or locks it in place and checks for game over.
+    @objc private func gameTick() {
+        if !movePieceDownOrLock() {
+            lockPiece()
+            if !spawnNewPiece() {
+                gameOver()
+            }
+        }
+    }
+    
     /// Starts or restarts the game by resetting the game state and spawning a new piece.
     func startGame() {
         isGameOver = false
@@ -41,61 +51,22 @@ class GameState {
         }
     }
     
-    /// Called at regular intervals by `gameTimer`. It moves the current piece down or locks it in place and checks for game over.
-    @objc private func gameTick() {
-        if !movePieceDownOrLock() {
-            lockPiece()
-            if !spawnNewPiece() {
-                gameOver()
-            }
-        }
+    /// Ends the game and stops the game timer.
+    private func gameOver() {
+        isGameOver = true
+        gameTimer?.invalidate()
     }
     
-    /// Moves the current piece one position to the left, if possible.
-    func movePieceLeft() {
-        guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x - 1, y: piece.position.y)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-        }
-    }
-    
-    /// Moves the current piece one position to the right, if possible.
-    func movePieceRight() {
-        guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x + 1, y: piece.position.y)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-        }
-    }
-    
-    /// Drops the current piece to the lowest possible position immediately.
-    func dropPiece() {
-        while movePieceDownOrLock() {}
-    }
-    
-    /// Attempts to move the current piece down by one row or locks it in place if it cannot move further.
-    /// - Returns: A Boolean value indicating whether the piece was successfully moved down.
-    func movePieceDownOrLock() -> Bool {
-        guard var piece = currentPiece, !isGameOver else { return false }
-        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
-        if isPositionValid(piece: piece, position: newPosition) {
-            piece.position = newPosition
-            currentPiece = piece
+    // MARK: - Piece Movement
+    /// Spawns a new Tetris piece at the top of the board.
+    /// - Returns: A Boolean value indicating whether the new piece could be placed.
+    private func spawnNewPiece() -> Bool {
+        let newPiece = TetrisPieceFactory.createPiece(columns: columns)
+        if isPositionValid(piece: newPiece, position: newPiece.position) {
+            currentPiece = newPiece
             return true
         } else {
-            lockPiece()
-            removeCompletedLines()
             return false
-        }
-    }
-    
-    /// Rotates the current piece to its next rotation state, if possible.
-    func rotatePiece() {
-        guard var piece = currentPiece, !isGameOver else { return }
-        piece.rotate()
-        if isPositionValid(piece: piece, position: piece.position) {
-            currentPiece = piece
         }
     }
     
@@ -117,6 +88,22 @@ class GameState {
             }
         }
         return true
+    }
+    
+    /// Attempts to move the current piece down by one row or locks it in place if it cannot move further.
+    /// - Returns: A Boolean value indicating whether the piece was successfully moved down.
+    func movePieceDownOrLock() -> Bool {
+        guard var piece = currentPiece, !isGameOver else { return false }
+        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
+        if isPositionValid(piece: piece, position: newPosition) {
+            piece.position = newPosition
+            currentPiece = piece
+            return true
+        } else {
+            lockPiece()
+            removeCompletedLines()
+            return false
+        }
     }
     
     /// Locks the current piece into the board, making it a permanent part of the game state, and checks for completed lines.
@@ -164,21 +151,36 @@ class GameState {
         }
     }
     
-    /// Spawns a new Tetris piece at the top of the board.
-    /// - Returns: A Boolean value indicating whether the new piece could be placed.
-    private func spawnNewPiece() -> Bool {
-        let newPiece = TetrisPieceFactory.createPiece(columns: columns)
-        if isPositionValid(piece: newPiece, position: newPiece.position) {
-            currentPiece = newPiece
-            return true
-        } else {
-            return false
+    // MARK: - Controls
+    /// Moves the current piece one position to the left, if possible.
+    func movePieceLeft() {
+        guard let piece = currentPiece, !isGameOver else { return }
+        let newPosition = CGPoint(x: piece.position.x - 1, y: piece.position.y)
+        if isPositionValid(piece: piece, position: newPosition) {
+            currentPiece?.position = newPosition
         }
     }
     
-    /// Ends the game and stops the game timer.
-    private func gameOver() {
-        isGameOver = true
-        gameTimer?.invalidate()
+    /// Moves the current piece one position to the right, if possible.
+    func movePieceRight() {
+        guard let piece = currentPiece, !isGameOver else { return }
+        let newPosition = CGPoint(x: piece.position.x + 1, y: piece.position.y)
+        if isPositionValid(piece: piece, position: newPosition) {
+            currentPiece?.position = newPosition
+        }
+    }
+    
+    /// Rotates the current piece to its next rotation state, if possible.
+    func rotatePiece() {
+        guard var piece = currentPiece, !isGameOver else { return }
+        piece.rotate()
+        if isPositionValid(piece: piece, position: piece.position) {
+            currentPiece = piece
+        }
+    }
+    
+    /// Drops the current piece to the lowest possible position immediately.
+    func dropPiece() {
+        while movePieceDownOrLock() {}
     }
 }
