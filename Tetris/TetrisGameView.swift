@@ -12,25 +12,24 @@ struct TetrisGameView: View {
     
     var body: some View {
         VStack {
-            // Display the score
+            // MARK: - Score
             Text("Score: \(gameState.score)")
                 .font(.title)
                 .padding()
             
-            // Display the game board
+            // MARK: - Game Board
             GameBoardView(gameState: gameState)
                 .aspectRatio(0.5, contentMode: .fit)
                 .padding()
                 .background(Color.black.opacity(0.5))
                 .cornerRadius(10)
             
-            // Game controls
+            // MARK: - Game Controls
             HStack {
                 
-                // Move piece left button
-                Button(action: {
+                Button {
                     gameState.movePieceLeft()
-                }) {
+                } label: {
                     Image(systemName: "arrow.left")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -38,10 +37,9 @@ struct TetrisGameView: View {
                 }
                 .buttonStyle(GameControlButtonStyle())
                 
-                // Move piece right button
-                Button(action: {
+                Button {
                     gameState.movePieceRight()
-                }) {
+                } label: {
                     Image(systemName: "arrow.right")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -49,10 +47,9 @@ struct TetrisGameView: View {
                 }
                 .buttonStyle(GameControlButtonStyle())
                 
-                // Rotate piece button
-                Button(action: {
+                Button {
                     gameState.rotatePiece()
-                }) {
+                } label: {
                     Image(systemName: "arrow.triangle.2.circlepath")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -60,10 +57,9 @@ struct TetrisGameView: View {
                 }
                 .buttonStyle(GameControlButtonStyle())
                 
-                // Move piece down (drop) button
-                Button(action: {
+                Button {
                     gameState.dropPiece()
-                }) {
+                } label: {
                     Image(systemName: "arrow.down.to.line")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -73,7 +69,7 @@ struct TetrisGameView: View {
             }
             .padding(.top, 20)
             
-            // Start new game button
+            // MARK: - New Game Button
             if gameState.isGameOver {
                 Button("Start New Game") {
                     gameState.startGame()
@@ -93,14 +89,5 @@ struct TetrisGameView: View {
         .onAppear {
             gameState.startGame()
         }
-    }
-}
-
-struct GameControlButtonStyle: ButtonStyle {
-    func makeBody(configuration: Self.Configuration) -> some View {
-        configuration.label
-            .background(Color.gray.opacity(configuration.isPressed ? 0.5 : 0.2))
-            .foregroundColor(.white)
-            .clipShape(Circle())
     }
 }
