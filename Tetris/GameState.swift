@@ -32,8 +32,9 @@ class GameState {
     @objc private func gameTick() {
         if !movePieceDownOrLock() {
             lockPiece()
+            removeCompletedLines()
             if !spawnNewPiece() {
-                gameOver()
+                gameOver() // Game over is checked after attempting to spawn a new piece.
             }
         }
     }
@@ -77,13 +78,24 @@ class GameState {
     /// - Returns: A Boolean value indicating whether the position is valid.
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         for (y, row) in piece.shape.enumerated() {
-            for (x, block) in row.enumerated() {
-                if block {
-                    let boardX = Int(position.x) + x
-                    let boardY = Int(position.y) + y
-                    if boardX < 0 || boardX >= columns || boardY < 0 || boardY >= rows || board[boardY][boardX] != nil {
-                        return false
-                    }
+            for (x, block) in row.enumerated() where block {
+                let boardX = Int(position.x) + x
+                let boardY = Int(position.y) + y
+                
+                // Check if the position is outside the left, right, or bottom boundaries of the board
+                if boardX < 0 || boardX >= columns || boardY >= rows {
+                    return false
+                }
+                
+                // If the position is above the board (negative y), it's considered valid
+                // This allows pieces to spawn partially offscreen
+                if boardY < 0 {
+                    continue
+                }
+                
+                // Check for overlap with existing blocks on the board
+                if board[boardY][boardX] != nil {
+                    return false
                 }
             }
         }
