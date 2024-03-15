@@ -25,7 +25,7 @@ struct TetrisGameView: View {
                 if let nextPiece = gameState.nextPiece {
                     NextPieceView(piece: nextPiece)
                         .padding()
-                        .frame(width: 100, height: 100) // Adjust size as needed
+                        .frame(width: 100, height: 100)
                 }
             }
             
@@ -35,51 +35,27 @@ struct TetrisGameView: View {
                 .padding()
                 .background(.black.opacity(0.5))
                 .cornerRadius(10)
-            
-            // MARK: - Game Controls
-            HStack {
-                
-                Button {
-                    gameState.movePieceLeft()
-                } label: {
-                    Image(systemName: "arrow.left")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(20)
-                }
-                .buttonStyle(GameControlButtonStyle())
-                
-                Button {
-                    gameState.movePieceRight()
-                } label: {
-                    Image(systemName: "arrow.right")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(20)
-                }
-                .buttonStyle(GameControlButtonStyle())
-                
-                Button {
+                .gesture(
+                    DragGesture(minimumDistance: 20)
+                        .onEnded { gesture in
+                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                // Horizontal move
+                                if gesture.translation.width < 0 {
+                                    gameState.movePieceLeft()
+                                } else {
+                                    gameState.movePieceRight()
+                                }
+                            } else {
+                                // Vertical move, but we only care about downward swipes here
+                                if gesture.translation.height > 0 {
+                                    gameState.dropPiece()
+                                }
+                            }
+                        }
+                )
+                .onTapGesture {
                     gameState.rotatePiece()
-                } label: {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(20)
                 }
-                .buttonStyle(GameControlButtonStyle())
-                
-                Button {
-                    gameState.dropPiece()
-                } label: {
-                    Image(systemName: "arrow.down.to.line")
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .padding(20)
-                }
-                .buttonStyle(GameControlButtonStyle())
-            }
-            .padding(.top, 20)
             
             // MARK: - New Game Button
             if gameState.isGameOver {
