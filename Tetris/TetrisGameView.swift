@@ -91,3 +91,7 @@ struct TetrisGameView: View {
         }
     }
 }
+
+#Preview("Tetris Game") {
+    TetrisGameView(gameState: GameState())
+}
