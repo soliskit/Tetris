@@ -12,6 +12,7 @@ class KeyboardInputViewController: UIViewController {
     var moveRightAction: (() -> Void)?
     var rotateAction: (() -> Void)?
     var dropAction: (() -> Void)?
+    var holdAction: (() -> Void)?
     
     override var canBecomeFirstResponder: Bool { true }
     
@@ -20,7 +21,8 @@ class KeyboardInputViewController: UIViewController {
             UIKeyCommand(action: #selector(moveLeft), input: UIKeyCommand.inputLeftArrow),
             UIKeyCommand(action: #selector(moveRight), input: UIKeyCommand.inputRightArrow),
             UIKeyCommand(action: #selector(rotate), input: UIKeyCommand.inputUpArrow),
-            UIKeyCommand(action: #selector(drop), input: UIKeyCommand.inputDownArrow)
+            UIKeyCommand(action: #selector(drop), input: UIKeyCommand.inputDownArrow),
+            UIKeyCommand(action: #selector(hold), input: UIKeyCommand.inputEnd)
         ]
     }
     
@@ -38,5 +40,9 @@ class KeyboardInputViewController: UIViewController {
     
     @objc func drop() {
         dropAction?()
+    }
+    
+    @objc func hold() {
+        holdAction?()
     }
 }

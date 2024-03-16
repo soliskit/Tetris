@@ -22,6 +22,10 @@ class GameState {
     var board: [[Color?]]
     /// The currently falling Tetris piece.
     var currentPiece: TetrisPiece?
+    /// The currently held Tetris piece.
+    var heldPiece: TetrisPiece?
+    /// Indicates if a piece is currently held
+    var isPieceHeld: Bool = false
     /// The next Tetris piece to be played.
     var nextPiece: TetrisPiece?
     /// Indicates whether the game is paused.
@@ -75,8 +79,11 @@ class GameState {
     
     /// Prepares the current piece by using the next piece and then generates the next piece for future use. Ends the game if the current piece cannot be placed.
     private func prepareNextPiece() {
-        currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
+        if heldPiece == nil || !isPieceHeld {
+            currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
+        }
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
+        isPieceHeld = false // Reset the held piece flag
         
         if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
             gameOver()
@@ -84,6 +91,25 @@ class GameState {
     }
     
     // MARK: - Piece Movement & Rotation
+    /// Holds or switches the current piece with the held piece.
+    func holdOrSwitchPiece() {
+        // If there's already a held piece, switch it with the current piece.
+        if let pieceToSwitch = heldPiece {
+            heldPiece = currentPiece
+            currentPiece = pieceToSwitch
+            // Reset the position of the currentPiece to the top of the board.
+            currentPiece?.position = CGPoint(x: columns / 2, y: 0)
+            // Ensure the switched piece does not collide immediately after switching.
+            if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
+                // If the new position is invalid, trigger game over or handle appropriately.
+                // Here, instead of immediate game over, you might want to allow the player to adjust the piece.
+            }
+        } else {
+            // If no piece is held, hold the current piece and prepare the next one.
+            heldPiece = currentPiece
+            prepareNextPiece()
+        }
+    }
     
     /// Attempts to move the current piece down by one row, returning true if successful.
     /// If the piece cannot move down further, it locks the piece in place.
@@ -198,6 +224,7 @@ class GameState {
         isGameOver = false
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
         score = 0
+        heldPiece = nil // Reset the held piece
         prepareNextPiece()
     }
 }

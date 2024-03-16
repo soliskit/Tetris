@@ -14,6 +14,10 @@ struct TetrisGameView: View {
             
             // MARK: - Next Piece
             HStack {
+                PiecePreviewView(label: "Hold", piece: gameState.heldPiece)
+                    .onTapGesture {
+                        gameState.holdOrSwitchPiece()
+                    }
                 Spacer()
                 PiecePreviewView(label: "Next", piece: gameState.nextPiece)
             }
@@ -72,7 +76,7 @@ struct TetrisGameView: View {
         .padding()
         .background(.teal.opacity(0.75))
         .background {
-            KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.dropPiece)
+            KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.dropPiece, hold: gameState.holdOrSwitchPiece)
         }
         .cornerRadius(20)
         .padding()

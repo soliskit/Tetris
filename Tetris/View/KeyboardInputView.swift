@@ -12,6 +12,7 @@ struct KeyboardInputView: UIViewControllerRepresentable {
     var moveRight: () -> Void
     var rotate: () -> Void
     var drop: () -> Void
+    var hold: () -> Void
     
     func makeUIViewController(context: Context) -> KeyboardInputViewController {
         let viewController = KeyboardInputViewController()
@@ -19,6 +20,7 @@ struct KeyboardInputView: UIViewControllerRepresentable {
         viewController.moveRightAction = moveRight
         viewController.rotateAction = rotate
         viewController.dropAction = drop
+        viewController.holdAction = hold
         return viewController
     }
     
