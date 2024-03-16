@@ -72,6 +72,9 @@ struct TetrisGameView: View {
         }
         .padding()
         .background(.teal.opacity(0.75))
+        .background {
+            KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.dropPiece)
+        }
         .cornerRadius(20)
         .padding()
         .onAppear {
