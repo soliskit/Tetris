@@ -16,9 +16,7 @@ struct TetrisGameView: View {
             HStack {
                 Spacer()
                 if let nextPiece = gameState.nextPiece {
-                    NextPieceView(piece: nextPiece)
-                        .padding()
-                        .frame(width: 100, height: 100)
+                    PiecePreviewView(label: "Next", piece: nextPiece)
                 }
             }
             
