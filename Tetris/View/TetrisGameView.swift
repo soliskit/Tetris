@@ -1,10 +1,3 @@
-//
-//  TetrisGameView.swift
-//  Tetris
-//
-//  Created by David Solis on 3/15/24.
-//
-
 import SwiftUI
 
 struct TetrisGameView: View {
@@ -57,10 +50,20 @@ struct TetrisGameView: View {
                     gameState.rotatePiece()
                 }
             
-            // MARK: - New Game Button
+            // MARK: - Game Start, Pause & Resume Button
             if gameState.isGameOver {
                 Button("Start New Game") {
                     gameState.startGame()
+                }
+                .padding()
+                .background(.indigo)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+                .font(.headline)
+                .padding()
+            } else {
+                Button(gameState.isPaused ? "Resume" : "Pause") {
+                    gameState.togglePauseResume()
                 }
                 .padding()
                 .background(.indigo)

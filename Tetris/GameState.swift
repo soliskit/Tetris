@@ -24,6 +24,8 @@ class GameState {
     var currentPiece: TetrisPiece?
     /// The next Tetris piece to be played.
     var nextPiece: TetrisPiece?
+    /// Indicates whether the game is paused.
+    var isPaused: Bool = false
     /// Indicates whether the game has ended.
     var isGameOver: Bool = true
     /// Current score of the player.
@@ -44,6 +46,16 @@ class GameState {
             lockPiece()
             removeCompletedLines()
             prepareNextPiece()
+        }
+    }
+    
+    /// Pauses and resumes the game
+    func togglePauseResume() {
+        isPaused.toggle()
+        if isPaused {
+            gameTimer?.invalidate()
+        } else {
+            gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
         }
     }
     
