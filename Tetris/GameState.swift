@@ -236,9 +236,14 @@ class GameState {
     /// Resets the game state to initial conditions, preparing for a new game.
     private func resetGameState() {
         isGameOver = false
-        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        isPaused = false
+        isPieceHeld = false
+        heldPiece = nil
+        currentPiece = nil
+        nextPiece = nil
+        blocks.removeAll()
         score = 0
-        heldPiece = nil // Reset the held piece
+        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
         prepareNextPiece()
     }
 }
