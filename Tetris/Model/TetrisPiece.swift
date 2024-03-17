@@ -16,7 +16,7 @@ struct Block: Identifiable {
 }
 
 struct TetrisPiece {
-    var id = UUID()
+    let id = UUID()
     var shape: [[Bool]]
     var position: CGPoint
     var color: Color
