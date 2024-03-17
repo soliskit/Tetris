@@ -17,7 +17,7 @@ class GameState {
     private var gameTimer: Timer?
     private var lastUpdateTime: TimeInterval?
     private var timeSinceLastDrop: TimeInterval = 0
-    var board: [[Block?]]
+    var board: [[Block?]] = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     private(set) var blocks: [Block] = []
     private(set) var currentPiece: TetrisPiece?
     private(set) var shadowPiece: TetrisPiece?
@@ -37,7 +37,6 @@ class GameState {
     
     // MARK: - Initialization
     init() {
-        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
         prepareNextPiece()
     }
     
