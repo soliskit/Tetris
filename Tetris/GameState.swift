@@ -5,8 +5,8 @@
 //  Created by David Solis on 3/15/24.
 //
 
-import SwiftUI
-import Combine
+import Observation
+import Foundation
 
 /// Manages the state of a Tetris game, including the game board, current piece, game status, and score.
 @Observable
