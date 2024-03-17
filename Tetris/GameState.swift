@@ -236,11 +236,14 @@ class GameState {
     private func lockPiece() {
         guard let piece = currentPiece else { return }
         for block in piece.generateBlocks() {
-            if withinBounds(block: block) {
-                board[block.y][block.x] = block
-            }
+            guard withinBounds(block: block) else { continue }
+            board[block.y][block.x] = block
+            blocks.append(block)
         }
-        blocks.append(contentsOf: piece.generateBlocks())
+        if board.flatMap({ $0 }).contains(where: { $0 != nil && $0!.y == 0 }) {
+            triggerGameOver()
+            return
+        }
         currentPiece = nil
         removeCompletedLines()
         prepareNextPiece()
