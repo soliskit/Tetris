@@ -57,15 +57,14 @@ class GameState {
     }
     
     @objc private func gameTick() {
-        guard let lastUpdateTime = lastUpdateTime else {
-            self.lastUpdateTime = Date().timeIntervalSinceReferenceDate
+        guard !isGameOver, !isPaused, let _ = currentPiece else {
             return
         }
         let currentTime = Date().timeIntervalSinceReferenceDate
-        let deltaTime = currentTime - lastUpdateTime
-        self.lastUpdateTime = currentTime
-        guard !isGameOver, !isPaused else { return }
-        
+        if lastUpdateTime == nil {
+            lastUpdateTime = currentTime
+        }
+        let deltaTime = currentTime - (lastUpdateTime ?? currentTime)
         timeSinceLastDrop += deltaTime
         if timeSinceLastDrop >= dropDelay {
             timeSinceLastDrop = 0
@@ -74,9 +73,11 @@ class GameState {
                 removeCompletedLines()
                 prepareNextPiece()
             }
-            updateBoard()
         }
+        lastUpdateTime = currentTime
+        updateBoard()
     }
+
     
     private func updateGameState() {
         guard !isGameOver, !isPaused, currentPiece != nil else {
@@ -164,31 +165,42 @@ class GameState {
     private func movePieceDown() -> Bool {
         guard let piece = currentPiece else { return false }
         let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
+        
         if isPositionValid(piece: piece, position: newPosition) {
             currentPiece?.position = newPosition
             return true
+        } else {
+            return false
         }
-        return false
     }
+
     
     private func lockPiece() {
         guard let piece = currentPiece else { return }
         blocks.append(contentsOf: piece.generateBlocks())
         currentPiece = nil
         removeCompletedLines()
+        prepareNextPiece()
+        updateBoard()
     }
     
     // MARK: - Board & Score Management
     
     private func updateBoard() {
         clearBoard()
-        (currentPiece?.generateBlocks() ?? [] + blocks)
-            .filter { block in
-                block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns
-            }
-            .forEach { block in
+        for block in blocks {
+            if block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
                 board[block.y][block.x] = block
             }
+        }
+
+        if let pieceBlocks = currentPiece?.generateBlocks() {
+            for block in pieceBlocks {
+                if block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
+                    board[block.y][block.x] = block
+                }
+            }
+        }
     }
     
     private func removeCompletedLines() {
