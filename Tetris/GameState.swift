@@ -14,7 +14,7 @@ class GameState {
     private var gameTimer: Timer?
     private var lastUpdateTime: TimeInterval?
     private var timeSinceLastDrop: TimeInterval = 0
-    private var dropDelay: TimeInterval = 0.5
+    var dropDelay: TimeInterval = 0.5
     let rows = 20
     let columns = 10
     var board: [[Block?]]
@@ -58,17 +58,24 @@ class GameState {
     
     @objc private func gameTick() {
         guard !isGameOver, !isPaused else { return }
-        timeSinceLastDrop += 0.01
+        let currentTime = Date().timeIntervalSinceReferenceDate
+        let deltaTime = lastUpdateTime.map { currentTime - $0 } ?? 0
+        lastUpdateTime = currentTime
+        timeSinceLastDrop += deltaTime
+        
         if timeSinceLastDrop >= dropDelay {
-            if !movePieceDown() {
+            if movePieceDown() {
+                timeSinceLastDrop = 0
+            } else {
                 lockPiece()
                 removeCompletedLines()
                 prepareNextPiece()
+                timeSinceLastDrop = 0
             }
-            timeSinceLastDrop = 0
         }
         updateBoard()
     }
+
     
     private func updateGameState() {
         guard !isGameOver, !isPaused, currentPiece != nil else {
@@ -138,7 +145,7 @@ class GameState {
     
     // MARK: - Piece Management
     
-    private func prepareNextPiece() {
+    func prepareNextPiece() {
         if !isPieceHeld, let next = nextPiece {
             currentPiece = next
         } else {
@@ -154,7 +161,7 @@ class GameState {
     }
     
     @discardableResult
-    private func movePieceDown() -> Bool {
+    func movePieceDown() -> Bool {
         guard let currentPiece = currentPiece else { return false }
         let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
         if isPositionValid(piece: currentPiece, position: newPosition) {
@@ -165,7 +172,7 @@ class GameState {
         }
     }
     
-    private func lockPiece() {
+    func lockPiece() {
         guard let piece = currentPiece else { return }
         blocks.append(contentsOf: piece.generateBlocks())
         currentPiece = nil
@@ -193,7 +200,7 @@ class GameState {
         }
     }
     
-    private func removeCompletedLines() {
+    func removeCompletedLines() {
         let completedLines = (0..<rows).filter { row in
             board[row].allSatisfy { $0 != nil }
         }
@@ -213,7 +220,7 @@ class GameState {
         score += scoreBonus
     }
     
-    private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
+     func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         piece.generateBlocks().allSatisfy { block in
             withinBounds(block: block) && (board[block.y][block.x] == nil || blocks.contains(where: { $0.id == block.id }))
         }
@@ -229,7 +236,7 @@ class GameState {
     
     // MARK: - Helper Functions
     
-    private func resetGameState() {
+    func resetGameState() {
         isGameOver = false
         isPaused = false
         isPieceHeld = false
