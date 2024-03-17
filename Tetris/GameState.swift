@@ -47,6 +47,7 @@ class GameState {
     
     func startGame() {
         resetGameState()
+        lastUpdateTime = Date().timeIntervalSinceReferenceDate
         gameTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
     }
     
@@ -228,6 +229,8 @@ class GameState {
         blocks.removeAll()
         score = 0
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        timeSinceLastDrop = 0
+        lastUpdateTime = nil
         prepareNextPiece()
     }
 }
