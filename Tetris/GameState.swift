@@ -151,7 +151,7 @@ class GameState {
         currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
         if let currentPiece = currentPiece, !isPositionValid(piece: currentPiece, position: currentPiece.position) {
-            triggerGameOver()
+            endGame()
         } else {
             updateBoard()
         }
@@ -189,7 +189,7 @@ class GameState {
             blocks.append(block)
         }
         if board.flatMap({ $0 }).contains(where: { $0 != nil && $0!.y == 0 }) {
-            triggerGameOver()
+            endGame()
             return
         }
         currentPiece = nil
@@ -271,11 +271,6 @@ class GameState {
     
     private func clearBoard() {
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
-    }
-    
-    private func triggerGameOver() {
-        isGameOver = true
-        gameTimer?.invalidate()
     }
     
     func resetGameState() {
