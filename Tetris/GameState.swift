@@ -181,15 +181,54 @@ class GameState {
     
     /// Checks each row of the board for completion (full row), clears them, and updates the score accordingly.
     private func removeCompletedLines() {
-        let completedLines = board.indices.filter {
-            !board[$0].contains(nil)
+        var linesCleared = [Int]() // Holds the indices of complete lines
+        
+        // Iterates through each row of the board to check for completion.
+        for (index, row) in board.enumerated() {
+            // A row is considered complete if all its elements are non-nil.
+            if row.allSatisfy({ $0 != nil }) {
+                // Store the index of the completed row.
+                linesCleared.append(index)
+            }
         }
-        completedLines.forEach { index in
-            board.remove(at: index)
-            board.insert(Array(repeating: nil, count: columns), at: 0)
+        
+        // Proceed if there are any completed lines to clear.
+        if !linesCleared.isEmpty {
+            // Reverse iteration to safely modify the board array while removing lines.
+            for lineIndex in linesCleared.reversed() {
+                // Remove the completed line.
+                board.remove(at: lineIndex)
+                // Add an empty line at the top.
+                board.insert(Array(repeating: nil, count: columns), at: 0)
+            }
+            
+            // Update the score based on the number of lines cleared.
+            applyScoring(linesCleared: linesCleared.count)
         }
-        // Update the score based on the number of completed lines, with a simple scoring rule.
-        score += completedLines.count * 100
+    }
+    
+    /// Updates the game's score based on the number of lines cleared in a single action. Provides a higher score for clearing multiple lines simultaneously, reflecting the increased difficulty and strategy in achieving such clears.
+    /// - Parameter linesCleared: The number of lines cleared at once.
+    private func applyScoring(linesCleared: Int) {
+        let baseScore = 100 // Defines the base score awarded for clearing a single line.
+        let bonusMultiplier = 2 // Defines a multiplier for clearing multiple lines to incentivize clearing more lines at once.
+        
+        switch linesCleared {
+            case 1:
+                // Award base score for a single line clear.
+                score += baseScore
+            case 2:
+                // Award double the base score plus a bonus for clearing two lines.
+                score += baseScore * 2 * bonusMultiplier
+            case 3:
+                // Award triple the base score plus a bonus for clearing three lines.
+                score += baseScore * 3 * bonusMultiplier
+            case 4:
+                // Award a special "Tetris" bonus for clearing four lines simultaneously.
+                score += baseScore * 4 * bonusMultiplier * 2
+            default:
+                break
+        }
     }
     
     /// Validates if the specified position for a piece does not collide with existing blocks or the board's boundaries.
