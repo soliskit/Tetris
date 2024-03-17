@@ -72,6 +72,7 @@ class GameState {
                 }
                 updateBoard()
             }
+            updateBoard()
         }
         self.lastUpdateTime = currentTime
     }
@@ -108,10 +109,12 @@ class GameState {
     
     func movePieceLeft() {
         movePiece(deltaX: -1)
+        updateBoard()
     }
     
     func movePieceRight() {
         movePiece(deltaX: 1)
+        updateBoard()
     }
     
     func rotatePiece() {
@@ -119,12 +122,17 @@ class GameState {
         piece.rotate()
         if isPositionValid(piece: piece, position: piece.position) {
             currentPiece = piece
+            updateBoard()
         }
     }
     
     func dropPiece() {
         while movePieceDown() {}
-        gameTick()
+        lockPiece()
+        removeCompletedLines()
+        prepareNextPiece()
+        updateBoard()
+        timeSinceLastDrop = 0
     }
     
     private func movePiece(deltaX: Int) {
