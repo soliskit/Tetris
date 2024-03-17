@@ -183,20 +183,36 @@ class GameState {
     }
     
     func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
-        let newBlocks = piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1))
-        return newBlocks.contains { $0.y >= rows || isBlockOccupied($0) }
-    }
-    
-    func isBlockOccupied(_ block: Block) -> Bool {
-        guard block.y < rows, block.x < columns else { return true }
-        return board[block.y][block.x] != nil
+        let projectedBlocks = piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1))
+        for block in projectedBlocks {
+            if block.y >= rows { return true }
+            
+            if block.y + 1 < rows,
+               let existingBlock = board[block.y + 1][block.x],
+               existingBlock.parentPieceID != piece.id {
+                return true
+            }
+        }
+        return false
     }
     
     func lockPiece() {
         guard let piece = currentPiece else { return }
+        for block in piece.generateBlocks() {
+            if withinBounds(block: block) {
+                board[block.y][block.x] = block
+            }
+        }
         blocks += piece.generateBlocks()
         currentPiece = nil
         updateBoard()
+    }
+    
+    func isBlockOccupied(_ block: Block) -> Bool {
+        if block.y >= rows || block.x >= columns || block.y < 0 || block.x < 0 {
+            return true
+        }
+        return board[block.y][block.x] != nil
     }
     
     func isBlockOverlapping(block: Block) -> Bool {
