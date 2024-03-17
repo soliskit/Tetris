@@ -197,32 +197,14 @@ class GameState {
         }
         // Add the same number of empty lines to the top of the board.
         board.insert(contentsOf: Array(repeating: Array(repeating: nil, count: columns), count: completedLineIndices.count), at: 0)
-        // Update the score based on the number of lines cleared.
-        applyScoring(linesCleared: completedLineIndices.count)
+        
+        applyScoring(linesRemoved: completedLineIndices.count)
     }
     
-    /// Updates the game's score based on the number of lines cleared in a single action. Provides a higher score for clearing multiple lines simultaneously, reflecting the increased difficulty and strategy in achieving such clears.
-    /// - Parameter linesCleared: The number of lines cleared at once.
-    private func applyScoring(linesCleared: Int) {
-        let baseScore = 100 // Defines the base score awarded for clearing a single line.
-        let bonusMultiplier = 2 // Defines a multiplier for clearing multiple lines to incentivize clearing more lines at once.
-        
-        switch linesCleared {
-            case 1:
-                // Award base score for a single line clear.
-                score += baseScore
-            case 2:
-                // Award double the base score plus a bonus for clearing two lines.
-                score += baseScore * 2 * bonusMultiplier
-            case 3:
-                // Award triple the base score plus a bonus for clearing three lines.
-                score += baseScore * 3 * bonusMultiplier
-            case 4:
-                // Award a special "Tetris" bonus for clearing four lines simultaneously.
-                score += baseScore * 4 * bonusMultiplier * 2
-            default:
-                break
-        }
+    private func applyScoring(linesRemoved: Int) {
+        let pointsPerLine = 100
+        let scoreBonus = linesRemoved * pointsPerLine
+        score += scoreBonus
     }
     
     /// Validates if the specified position for a piece does not collide with existing blocks or the board's boundaries.
