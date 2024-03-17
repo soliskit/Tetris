@@ -57,27 +57,18 @@ class GameState {
     }
     
     @objc private func gameTick() {
-        guard !isGameOver, !isPaused, let _ = currentPiece else {
-            return
-        }
-        let currentTime = Date().timeIntervalSinceReferenceDate
-        if lastUpdateTime == nil {
-            lastUpdateTime = currentTime
-        }
-        let deltaTime = currentTime - (lastUpdateTime ?? currentTime)
-        timeSinceLastDrop += deltaTime
+        guard !isGameOver, !isPaused else { return }
+        timeSinceLastDrop += 0.01
         if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop = 0
             if !movePieceDown() {
                 lockPiece()
                 removeCompletedLines()
                 prepareNextPiece()
             }
+            timeSinceLastDrop = 0
         }
-        lastUpdateTime = currentTime
         updateBoard()
     }
-
     
     private func updateGameState() {
         guard !isGameOver, !isPaused, currentPiece != nil else {
@@ -162,18 +153,17 @@ class GameState {
         }
     }
     
+    @discardableResult
     private func movePieceDown() -> Bool {
-        guard let piece = currentPiece else { return false }
-        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
-        
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
+        guard let currentPiece = currentPiece else { return false }
+        let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
+        if isPositionValid(piece: currentPiece, position: newPosition) {
+            self.currentPiece?.position = newPosition
             return true
         } else {
             return false
         }
     }
-
     
     private func lockPiece() {
         guard let piece = currentPiece else { return }
