@@ -11,22 +11,29 @@ import Foundation
 @Observable
 class GameState {
     // MARK: - Properties
-    private var gameTimer: Timer?
-    let dropDelay: TimeInterval = 0.5
-    private var lastUpdateTime: TimeInterval?
-    private var timeSinceLastDrop: TimeInterval = 0
     let rows = 20
     let columns = 10
-    var board: [[Block?]] = []
-    var blocks: [Block] = []
-    var currentPiece: TetrisPiece?
-    var shadowPiece: TetrisPiece?
-    var heldPiece: TetrisPiece?
-    var nextPiece: TetrisPiece?
-    var isPieceHeld: Bool = false
+    let dropDelay: TimeInterval = 0.5
+    private var gameTimer: Timer?
+    private var lastUpdateTime: TimeInterval?
+    private var timeSinceLastDrop: TimeInterval = 0
+    var board: [[Block?]]
+    private(set) var blocks: [Block] = []
+    private(set) var currentPiece: TetrisPiece?
+    private(set) var shadowPiece: TetrisPiece?
+    private(set) var heldPiece: TetrisPiece?
+    private(set) var nextPiece: TetrisPiece?
+    private(set) var isPieceHeld: Bool = false
     var isPaused: Bool = false
-    var isGameOver: Bool = true
-    var score: Int = 0
+    private(set) var isGameOver: Bool = true
+    private(set) var score: Int = 0
+    
+    var isCurrentPositionValid: Bool {
+        if let currentPiece = currentPiece {
+            return isPositionValid(piece: currentPiece, position: currentPiece.position)
+        }
+        return false
+    }
     
     // MARK: - Initialization
     init() {
@@ -110,7 +117,7 @@ class GameState {
         }
     }
     
-    // MARK: - Piece Movement & Rotation
+    // MARK: - Piece Movement
     
     func holdOrSwitchPiece() {
         if let pieceToSwitch = heldPiece {
@@ -163,24 +170,7 @@ class GameState {
     }
     
     // MARK: - Piece Management
-    
-    private func updateShadowPiece() {
-        guard let currentPiece = currentPiece else {
-            shadowPiece = nil
-            return
-        }
         
-        // Create a copy of the current piece to represent the shadow
-        var projectedPiece = currentPiece
-        while isPositionValid(piece: projectedPiece, position: CGPoint(x: projectedPiece.position.x, y: projectedPiece.position.y + 1)) {
-            // Move the projected piece down until it reaches an invalid position
-            projectedPiece.position.y += 1
-        }
-        
-        // Once the projected piece cannot move down any further, it represents the shadow position
-        shadowPiece = projectedPiece
-    }
-    
     func prepareNextPiece() {
         currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
@@ -272,7 +262,20 @@ class GameState {
         block.x >= 0 && block.x < columns && block.y < rows
     }
     
-    // MARK: - Helper Functions
+    // MARK: - Shadow Piece Methods
+    private func updateShadowPiece() {
+        guard let currentPiece = currentPiece else {
+            shadowPiece = nil
+            return
+        }
+        var projectedPiece = currentPiece
+        while isPositionValid(piece: projectedPiece, position: CGPoint(x: projectedPiece.position.x, y: projectedPiece.position.y + 1)) {
+            projectedPiece.position.y += 1
+        }
+        shadowPiece = projectedPiece
+    }
+    
+    // MARK: - Helper Methods
     private func triggerGameOver() {
         isGameOver = true
         gameTimer?.invalidate()
