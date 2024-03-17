@@ -44,11 +44,13 @@ class GameState {
     // MARK: - Game Session
     
     func startGame() {
+        assert(isGameOver, "startGame called but game is not in a 'game over' state.")
         resetGameState()
         setupGameTimer()
     }
     
     func togglePauseResume() {
+        assert(!isGameOver, "togglePauseResume called during 'game over' state.")
         isPaused.toggle()
         if isPaused {
             gameTimer?.invalidate()
@@ -63,18 +65,17 @@ class GameState {
     }
     
     @objc private func gameTick() {
+        assert(Thread.isMainThread, "gameTick must be executed on the main thread.")
         guard !isGameOver && !isPaused else { return }
-        let currentTime = Date().timeIntervalSinceReferenceDate
-        if let lastTime = lastUpdateTime {
-            timeSinceLastDrop += currentTime - lastTime
-        }
-        lastUpdateTime = currentTime
+        
+        processTime() // Updates the last update time and calculates the elapsed time since the last drop.
         
         if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop -= dropDelay
-            attemptMoveDownOrLockPiece()
+            timeSinceLastDrop -= dropDelay // Reset the drop timer.
+            processPieceMovement() // Processes the movement and potential locking of the current piece.
         }
     }
+
     
     private func tickDown() {
         guard let currentPiece = currentPiece, !movePieceDown() else { return }
@@ -115,7 +116,29 @@ class GameState {
         }
     }
     
+    private func processTime() {
+        let currentTime = Date().timeIntervalSinceReferenceDate
+        if let lastTime = lastUpdateTime {
+            timeSinceLastDrop += currentTime - lastTime
+        }
+        lastUpdateTime = currentTime
+    }
+    
+    private func processPieceMovement() {
+        // Ensure actions are valid before performing them
+        guard let currentPiece = currentPiece else { return }
+        if timeSinceLastDrop >= dropDelay {
+            timeSinceLastDrop -= dropDelay
+            if !movePieceDown() && shouldLockPiece(currentPiece) {
+                lockPiece()
+                removeCompletedLines()
+                prepareNextPiece()
+            }
+        }
+    }
+    
     private func setupGameTimer() {
+        assert(Thread.isMainThread, "setupGameTimer must be called from the main thread.")
         lastUpdateTime = Date().timeIntervalSinceReferenceDate
         gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
             self?.gameTick()
@@ -210,13 +233,39 @@ class GameState {
         return false
     }
     
-    func lockPiece() {
+    private func lockPiece() {
         guard let piece = currentPiece else { return }
-        blocks += piece.generateBlocks()
+        for block in piece.generateBlocks() {
+            if withinBounds(block: block) {
+                board[block.y][block.x] = block
+            }
+        }
+        blocks.append(contentsOf: piece.generateBlocks())
         currentPiece = nil
+        removeCompletedLines()
+        prepareNextPiece()
         updateBoard()
+        updateShadowPiece()
     }
     
+    private func canLockPiece(_ piece: TetrisPiece) -> Bool {
+        let bottomReached = piece.generateBlocks().contains { block in
+            block.y + 1 >= rows
+        }
+        if bottomReached {
+            return true
+        }
+        let collisionWithLockedBlocks = piece.generateBlocks().contains { block in
+            let newPositionY = block.y + 1
+            guard newPositionY < rows else { return true }
+            if let _ = board[newPositionY][block.x] {
+                return true
+            }
+            return false
+        }
+        return collisionWithLockedBlocks
+    }
+  
     func isBlockOccupied(_ block: Block) -> Bool {
         guard block.y >= 0, block.y < rows, block.x >= 0, block.x < columns else { return true }
         return board[block.y][block.x] != nil
@@ -230,6 +279,7 @@ class GameState {
     // MARK: - Board & Score Management
     
     func updateBoard() {
+        guard !isGameOver else { return }
         clearBoard()
         blocks.forEach { block in
             if withinBounds(block: block) {
@@ -281,6 +331,7 @@ class GameState {
     }
     
     func resetGameState() {
+        guard isGameOver, !isPaused else { return }
         clearBoard()
         blocks.removeAll()
         score = 0
