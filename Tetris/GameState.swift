@@ -174,26 +174,25 @@ class GameState {
     func movePieceDown() -> Bool {
         guard let currentPiece = currentPiece else { return false }
         let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
+        
         if isPositionValid(piece: currentPiece, position: newPosition) {
             self.currentPiece?.position = newPosition
             updateBoard()
             return true
+        } else {
+            if shouldLockPiece(currentPiece) {
+                lockPiece()
+            }
+            return false
         }
-        return handleLockAndNewPiece()
     }
     
     func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
-        let projectedBlocks = piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1))
-        for block in projectedBlocks {
-            if block.y >= rows { return true }
-            
-            if block.y + 1 < rows,
-               let existingBlock = board[block.y + 1][block.x],
-               existingBlock.parentPieceID != piece.id {
-                return true
-            }
+        let newBlocks = piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1))
+        
+        return newBlocks.contains { block in
+            return block.y >= rows || isBlockOccupied(block)
         }
-        return false
     }
     
     func lockPiece() {
@@ -209,9 +208,7 @@ class GameState {
     }
     
     func isBlockOccupied(_ block: Block) -> Bool {
-        if block.y >= rows || block.x >= columns || block.y < 0 || block.x < 0 {
-            return true
-        }
+        guard block.y >= 0, block.y < rows, block.x >= 0, block.x < columns else { return true }
         return board[block.y][block.x] != nil
     }
     
