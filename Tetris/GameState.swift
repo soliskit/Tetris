@@ -19,7 +19,9 @@ class GameState {
     /// Timer to move the current piece down at set intervals.
     private var gameTimer: Timer?
     /// The game board, where nil represents an empty space and a Color represents a filled space.
-    var board: [[Color?]]
+    var board: [[Block?]]
+    /// Track locked blocks on the game board.
+    var blocks: [Block] = []
     /// The currently falling Tetris piece.
     var currentPiece: TetrisPiece?
     /// The currently held Tetris piece.
