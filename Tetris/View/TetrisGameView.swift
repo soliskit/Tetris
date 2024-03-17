@@ -62,22 +62,12 @@ struct TetrisGameView: View {
                 Button("Start New Game") {
                     gameState.startGame()
                 }
-                .padding()
-                .background(.indigo)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                .font(.headline)
-                .padding()
+                .buttonStyle(GameControlButtonStyle())
             } else {
                 Button(gameState.isPaused ? "Resume" : "Pause") {
                     gameState.togglePauseResume()
                 }
-                .padding()
-                .background(.indigo)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-                .font(.headline)
-                .padding()
+                .buttonStyle(GameControlButtonStyle())
             }
         }
         .padding()
@@ -85,7 +75,7 @@ struct TetrisGameView: View {
         .background {
             KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.dropPiece, hold: gameState.holdOrSwitchPiece)
         }
-        .cornerRadius(20)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding()
         .onAppear {
             gameState.startGame()
