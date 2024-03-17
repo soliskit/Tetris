@@ -167,20 +167,19 @@ class GameState {
     
     /// Locks the current piece into its position on the board, marking it as a permanent block, and then checks for completed lines.
     private func lockPiece() {
+        // Add the blocks of the current piece to the locked blocks list.
         guard let piece = currentPiece else { return }
-        piece.shape.enumerated().forEach { y, row in
-            row.enumerated().forEach { x, block in
-                guard block else { return }
-                let boardX = Int(piece.position.x) + x
-                let boardY = Int(piece.position.y) + y
-                // Ensure the block is within the board bounds for both X and Y coordinates
-                guard boardX >= 0, boardX < columns, boardY >= 0, boardY < rows else {
-                    fatalError("The piece would exceed the boundaries")
-                }
-                board[boardY][boardX] = piece.color
-            }
+        let blocksToAdd = piece.generateBlocks()
+        self.blocks.append(contentsOf: blocksToAdd)
+        
+        // Update the board representation with the new blocks.
+        for block in blocksToAdd {
+            guard block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns else { continue }
+            board[block.y][block.x] = block
         }
-        removeCompletedLines()
+        
+        // Reset the current piece as it's now locked.
+        currentPiece = nil
     }
     
     /// Checks each row of the board for completion (full row), clears them, and updates the score accordingly.
