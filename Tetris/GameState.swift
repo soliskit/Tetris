@@ -49,6 +49,11 @@ class GameState {
         setupGameTimer()
     }
     
+    private func endGame() {
+        isGameOver = true
+        gameTimer?.invalidate()
+    }
+    
     func togglePauseResume() {
         assert(!isGameOver, "togglePauseResume called during 'game over' state.")
         isPaused.toggle()
@@ -59,15 +64,15 @@ class GameState {
         }
     }
     
-    private func gameOver() {
-        isGameOver = true
-        gameTimer?.invalidate()
-    }
-    
-    @objc private func gameTick() {
+    @objc private func processTime() {
         assert(Thread.isMainThread, "gameTick must be executed on the main thread.")
         guard !isGameOver && !isPaused else { return }
-        processTime()
+        
+        let currentTime = Date().timeIntervalSinceReferenceDate
+        if let lastTime = lastUpdateTime {
+            timeSinceLastDrop += currentTime - lastTime
+        }
+        lastUpdateTime = currentTime
         
         if timeSinceLastDrop >= dropDelay {
             timeSinceLastDrop -= dropDelay
@@ -75,73 +80,25 @@ class GameState {
         }
     }
     
-    private func tickDown() {
-        guard let currentPiece = currentPiece, !movePieceDown() else { return }
-        updateBoard()
-        if shouldLockPiece(currentPiece) {
-            lockPiece()
-            removeCompletedLines()
-            prepareNextPiece()
-        }
-    }
-    
-    private func updateGameState() {
-        if lastUpdateTime == nil {
-            lastUpdateTime = Date().timeIntervalSinceReferenceDate
-        }
-        let currentTime = Date().timeIntervalSinceReferenceDate
-        timeSinceLastDrop += currentTime - (lastUpdateTime ?? currentTime)
-        lastUpdateTime = currentTime
-        
-        if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop -= dropDelay
-            if let piece = currentPiece, !movePieceDown() && shouldLockPiece(piece) {
-                lockPiece()
-                removeCompletedLines()
-                prepareNextPiece()
-            }
-            updateBoard()
-        }
-        updateShadowPiece()
-    }
-    
-    private func attemptMoveDownOrLockPiece() {
-        guard let currentPiece = currentPiece, !movePieceDown() else { return }
-        if shouldLockPiece(currentPiece) {
-            lockPiece()
-            removeCompletedLines()
-            prepareNextPiece()
-        }
-    }
-    
-    private func processTime() {
-        let currentTime = Date().timeIntervalSinceReferenceDate
-        if let lastTime = lastUpdateTime {
-            timeSinceLastDrop += currentTime - lastTime
-        }
-        lastUpdateTime = currentTime
-    }
-    
     private func processPieceMovement() {
         guard let currentPiece = self.currentPiece else { return }
-        if movePieceDown() {
-            updateBoard()
-        } else {
+        if !movePieceDown() {
             if canLockPiece(currentPiece) {
                 lockPiece()
                 removeCompletedLines()
                 prepareNextPiece()
             } else {
-                triggerGameOver()
+                endGame()
             }
         }
+        updateBoard()
     }
     
     private func setupGameTimer() {
         assert(Thread.isMainThread, "setupGameTimer must be called from the main thread.")
         lastUpdateTime = Date().timeIntervalSinceReferenceDate
         gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
-            self?.gameTick()
+            self?.processTime()
         }
     }
     
@@ -222,15 +179,6 @@ class GameState {
             
             return false
         }
-    }
-    
-    private func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
-        for transformedBlock in piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1)) {
-            if transformedBlock.y >= rows || isBlockOccupied(transformedBlock) {
-                return true
-            }
-        }
-        return false
     }
     
     private func lockPiece() {
