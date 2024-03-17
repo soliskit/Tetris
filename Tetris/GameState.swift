@@ -91,33 +91,12 @@ class GameState {
         }
     }
     
-    private func movePieceDown() -> Bool {
-        guard let piece = currentPiece else { return false }
-        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
-        
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-            updateBoardWithCurrentPiece()
-            return true
-        } else {
-            return false
-        }
-    }
-    
     func movePieceLeft() {
         movePiece(deltaX: -1)
     }
     
     func movePieceRight() {
         movePiece(deltaX: 1)
-    }
-    
-    private func movePiece(deltaX: Int) {
-        guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-        }
     }
     
     func rotatePiece() {
@@ -131,6 +110,27 @@ class GameState {
     func dropPiece() {
         while movePieceDown() {}
         gameTick()
+    }
+    
+    private func movePiece(deltaX: Int) {
+        guard let piece = currentPiece, !isGameOver else { return }
+        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
+        if isPositionValid(piece: piece, position: newPosition) {
+            currentPiece?.position = newPosition
+        }
+    }
+    
+    private func movePieceDown() -> Bool {
+        guard let piece = currentPiece else { return false }
+        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
+        
+        if isPositionValid(piece: piece, position: newPosition) {
+            currentPiece?.position = newPosition
+            updateBoardWithCurrentPiece()
+            return true
+        } else {
+            return false
+        }
     }
     
     // MARK: - Board & Score Management
