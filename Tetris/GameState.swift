@@ -67,15 +67,13 @@ class GameState {
     @objc private func gameTick() {
         assert(Thread.isMainThread, "gameTick must be executed on the main thread.")
         guard !isGameOver && !isPaused else { return }
-        
-        processTime() // Updates the last update time and calculates the elapsed time since the last drop.
+        processTime()
         
         if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop -= dropDelay // Reset the drop timer.
-            processPieceMovement() // Processes the movement and potential locking of the current piece.
+            timeSinceLastDrop -= dropDelay
+            processPieceMovement()
         }
     }
-
     
     private func tickDown() {
         guard let currentPiece = currentPiece, !movePieceDown() else { return }
@@ -125,14 +123,16 @@ class GameState {
     }
     
     private func processPieceMovement() {
-        // Ensure actions are valid before performing them
-        guard let currentPiece = currentPiece else { return }
-        if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop -= dropDelay
-            if !movePieceDown() && shouldLockPiece(currentPiece) {
+        guard let currentPiece = self.currentPiece else { return }
+        if movePieceDown() {
+            updateBoard()
+        } else {
+            if canLockPiece(currentPiece) {
                 lockPiece()
                 removeCompletedLines()
                 prepareNextPiece()
+            } else {
+                triggerGameOver()
             }
         }
     }
@@ -252,21 +252,17 @@ class GameState {
     }
     
     private func canLockPiece(_ piece: TetrisPiece) -> Bool {
-        let bottomReached = piece.generateBlocks().contains { block in
-            block.y + 1 >= rows
-        }
-        if bottomReached {
-            return true
-        }
-        let collisionWithLockedBlocks = piece.generateBlocks().contains { block in
-            let newPositionY = block.y + 1
-            guard newPositionY < rows else { return true }
-            if let _ = board[newPositionY][block.x] {
+        for block in piece.generateBlocks() {
+            let newPos = CGPoint(x: block.x, y: block.y + 1)
+            let newPosIntY = Int(newPos.y)
+            if newPosIntY >= rows {
                 return true
             }
-            return false
+            if newPosIntY < rows && board[newPosIntY][block.x] != nil {
+                return true
+            }
         }
-        return collisionWithLockedBlocks
+        return false
     }
   
     func isBlockOccupied(_ block: Block) -> Bool {
@@ -294,6 +290,7 @@ class GameState {
                 board[block.y][block.x] = block
             }
         }
+        updateShadowPiece()
     }
     
     func removeCompletedLines() {
