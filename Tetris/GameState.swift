@@ -31,6 +31,7 @@ class GameState {
     init() {
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
         prepareNextPiece()
+        setupGameTimer()
     }
     
     // MARK: - Game Session
@@ -57,23 +58,23 @@ class GameState {
     }
     
     @objc private func gameTick() {
-        guard !isGameOver, !isPaused else { return }
+        guard let lastUpdateTime = lastUpdateTime else { return }
         let currentTime = Date().timeIntervalSinceReferenceDate
-        let deltaTime = lastUpdateTime.map { currentTime - $0 } ?? 0
-        lastUpdateTime = currentTime
-        timeSinceLastDrop += deltaTime
+        let deltaTime = currentTime - lastUpdateTime
+        self.lastUpdateTime = currentTime
         
-        if timeSinceLastDrop >= dropDelay {
-            if movePieceDown() {
+        if !isGameOver && !isPaused {
+            timeSinceLastDrop += deltaTime
+            if timeSinceLastDrop >= dropDelay {
                 timeSinceLastDrop = 0
-            } else {
-                lockPiece()
-                removeCompletedLines()
-                prepareNextPiece()
-                timeSinceLastDrop = 0
+                if !movePieceDown() {
+                    lockPiece()
+                    removeCompletedLines()
+                    prepareNextPiece()
+                }
+                updateBoard()
             }
         }
-        updateBoard()
     }
 
     
@@ -89,6 +90,13 @@ class GameState {
             prepareNextPiece()
         }
         updateBoard()
+    }
+    
+    func setupGameTimer() {
+        lastUpdateTime = Date().timeIntervalSinceReferenceDate
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
+            self.gameTick()
+        }
     }
     
     // MARK: - Piece Movement & Rotation
@@ -146,18 +154,13 @@ class GameState {
     // MARK: - Piece Management
     
     func prepareNextPiece() {
-        if !isPieceHeld, let next = nextPiece {
-            currentPiece = next
-        } else {
-            currentPiece = TetrisPieceFactory.createPiece(columns: columns)
-        }
+        currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
         isPieceHeld = false
         if let currentPiece = currentPiece, !isPositionValid(piece: currentPiece, position: currentPiece.position) {
             gameOver()
-        } else {
-            updateBoard()
         }
+        updateBoard()
     }
     
     @discardableResult
@@ -168,6 +171,7 @@ class GameState {
             self.currentPiece?.position = newPosition
             return true
         } else {
+            lockPiece()
             return false
         }
     }
@@ -178,7 +182,6 @@ class GameState {
         currentPiece = nil
         removeCompletedLines()
         prepareNextPiece()
-        updateBoard()
     }
     
     // MARK: - Board & Score Management
