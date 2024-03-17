@@ -183,30 +183,20 @@ class GameState {
     
     /// Checks each row of the board for completion (full row), clears them, and updates the score accordingly.
     private func removeCompletedLines() {
-        var linesCleared = [Int]() // Holds the indices of complete lines
-        
-        // Iterates through each row of the board to check for completion.
-        for (index, row) in board.enumerated() {
-            // A row is considered complete if all its elements are non-nil.
-            if row.allSatisfy({ $0 != nil }) {
-                // Store the index of the completed row.
-                linesCleared.append(index)
-            }
+        // Identify completed lines by their indices.
+        let completedLineIndices = board.indices.filter { row in
+            board[row].allSatisfy { $0 != nil }
         }
-        
-        // Proceed if there are any completed lines to clear.
-        if !linesCleared.isEmpty {
-            // Reverse iteration to safely modify the board array while removing lines.
-            for lineIndex in linesCleared.reversed() {
-                // Remove the completed line.
-                board.remove(at: lineIndex)
-                // Add an empty line at the top.
-                board.insert(Array(repeating: nil, count: columns), at: 0)
-            }
-            
-            // Update the score based on the number of lines cleared.
-            applyScoring(linesCleared: linesCleared.count)
+        // Check if there are completed lines to clear.
+        guard !completedLineIndices.isEmpty else { return }
+        // Clear the completed lines and move down the remaining blocks.
+        completedLineIndices.reversed().forEach { index in
+            board.remove(at: index)
         }
+        // Add the same number of empty lines to the top of the board.
+        board.insert(contentsOf: Array(repeating: Array(repeating: nil, count: columns), count: completedLineIndices.count), at: 0)
+        // Update the score based on the number of lines cleared.
+        applyScoring(linesCleared: completedLineIndices.count)
     }
     
     /// Updates the game's score based on the number of lines cleared in a single action. Provides a higher score for clearing multiple lines simultaneously, reflecting the increased difficulty and strategy in achieving such clears.
