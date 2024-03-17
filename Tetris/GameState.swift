@@ -161,14 +161,6 @@ class GameState {
         timeSinceLastDrop = 0
     }
     
-    private func movePiece(deltaX: Int) {
-        guard let piece = currentPiece, !isGameOver else { return }
-        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
-        }
-    }
-    
     // MARK: - Piece Management
         
     func prepareNextPiece() {
@@ -180,14 +172,14 @@ class GameState {
     }
     
     func movePieceDown() -> Bool {
-        guard let piece = currentPiece else { return false }
-        let newPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
-        if isPositionValid(piece: piece, position: newPosition) {
-            currentPiece?.position = newPosition
+        guard let currentPiece = currentPiece else { return false }
+        let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
+        if isPositionValid(piece: currentPiece, position: newPosition) {
+            self.currentPiece?.position = newPosition
             updateBoard()
             return true
         }
-        return false
+        return handleLockAndNewPiece()
     }
     
     func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
@@ -254,28 +246,12 @@ class GameState {
         }
     }
     
+    // MARK: - Helper Methods
+    
     private func clearBoard() {
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
     }
     
-    private func withinBounds(block: Block) -> Bool {
-        block.x >= 0 && block.x < columns && block.y < rows
-    }
-    
-    // MARK: - Shadow Piece Methods
-    private func updateShadowPiece() {
-        guard let currentPiece = currentPiece else {
-            shadowPiece = nil
-            return
-        }
-        var projectedPiece = currentPiece
-        while isPositionValid(piece: projectedPiece, position: CGPoint(x: projectedPiece.position.x, y: projectedPiece.position.y + 1)) {
-            projectedPiece.position.y += 1
-        }
-        shadowPiece = projectedPiece
-    }
-    
-    // MARK: - Helper Methods
     private func triggerGameOver() {
         isGameOver = true
         gameTimer?.invalidate()
@@ -288,5 +264,38 @@ class GameState {
         isGameOver = false
         isPaused = false
         prepareNextPiece()
+    }
+    
+    private func withinBounds(block: Block) -> Bool {
+        block.x >= 0 && block.x < columns && block.y < rows
+    }
+    
+    private func movePiece(deltaX: Int) {
+        guard let piece = currentPiece, !isGameOver else { return }
+        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
+        if isPositionValid(piece: piece, position: newPosition) {
+            currentPiece?.position = newPosition
+        }
+    }
+    
+    private func handleLockAndNewPiece() -> Bool {
+        if isCurrentPositionValid {
+            return false
+        }
+        lockPiece()
+        prepareNextPiece()
+        return false
+    }
+    
+    private func updateShadowPiece() {
+        guard let currentPiece = currentPiece else {
+            shadowPiece = nil
+            return
+        }
+        var projectedPiece = currentPiece
+        while isPositionValid(piece: projectedPiece, position: CGPoint(x: projectedPiece.position.x, y: projectedPiece.position.y + 1)) {
+            projectedPiece.position.y += 1
+        }
+        shadowPiece = projectedPiece
     }
 }
