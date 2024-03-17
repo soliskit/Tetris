@@ -11,9 +11,12 @@ import Foundation
 @Observable
 class GameState {
     // MARK: - Properties
+    private var gameTimer: Timer?
+    private var lastUpdateTime: TimeInterval?
+    private var timeSinceLastDrop: TimeInterval = 0
+    private var dropDelay: TimeInterval = 0.5
     let rows = 20
     let columns = 10
-    private var gameTimer: Timer?
     var board: [[Block?]]
     var blocks: [Block] = []
     var currentPiece: TetrisPiece?
@@ -32,36 +35,58 @@ class GameState {
     
     // MARK: - Game Session
     
+    func togglePauseResume() {
+        isPaused.toggle()
+        if isPaused {
+            gameTimer?.invalidate()
+        } else {
+            lastUpdateTime = nil
+            gameTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
+        }
+    }
+    
+    func startGame() {
+        resetGameState()
+        gameTimer = Timer.scheduledTimer(timeInterval: 0.01, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
+    }
+    
+    private func gameOver() {
+        isGameOver = true
+        gameTimer?.invalidate()
+    }
+    
     @objc private func gameTick() {
-        guard !isGameOver, !isPaused, let _ = currentPiece else {
+        let currentTime = Date().timeIntervalSinceReferenceDate
+        if let lastUpdateTime = self.lastUpdateTime {
+            let deltaTime = currentTime - lastUpdateTime
+            self.timeSinceLastDrop += deltaTime
+            
+            if self.timeSinceLastDrop >= self.dropDelay {
+                self.timeSinceLastDrop = 0
+                
+                if !movePieceDown() {
+                    lockPiece()
+                    removeCompletedLines()
+                    prepareNextPiece()
+                }
+                updateBoard()
+            }
+        }
+        self.lastUpdateTime = currentTime
+    }
+
+    private func updateGameState() {
+        guard !isGameOver, !isPaused, currentPiece != nil else {
             prepareNextPiece()
             return
         }
+        
         if !movePieceDown() {
             lockPiece()
             removeCompletedLines()
             prepareNextPiece()
         }
         updateBoard()
-    }
-    
-    func togglePauseResume() {
-        isPaused.toggle()
-        if isPaused {
-            gameTimer?.invalidate()
-        } else {
-            gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
-        }
-    }
-    
-    func startGame() {
-        resetGameState()
-        gameTimer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(gameTick), userInfo: nil, repeats: true)
-    }
-    
-    private func gameOver() {
-        isGameOver = true
-        gameTimer?.invalidate()
     }
     
     // MARK: - Piece Movement & Rotation
@@ -148,18 +173,25 @@ class GameState {
     
     private func updateBoard() {
         clearBoard()
-        let allBlocks = (currentPiece?.generateBlocks() ?? []) + blocks
-        for block in allBlocks where block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
-            board[block.y][block.x] = block
-        }
+        (currentPiece?.generateBlocks() ?? [] + blocks)
+            .filter { block in
+                block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns
+            }
+            .forEach { block in
+                board[block.y][block.x] = block
+            }
     }
     
     private func removeCompletedLines() {
         let completedLines = (0..<rows).filter { row in
             board[row].allSatisfy { $0 != nil }
         }
-        completedLines.reversed().forEach { board.remove(at: $0) }
-        board.insert(contentsOf: Array(repeating: Array(repeating: nil, count: columns), count: completedLines.count), at: 0)
+        completedLines
+            .reversed()
+            .forEach { index in
+                board.remove(at: index)
+                board.insert(Array(repeating: nil, count: columns), at: 0)
+            }
         applyScoring(linesRemoved: completedLines.count)
         updateBoard()
     }
