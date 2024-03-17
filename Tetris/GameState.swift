@@ -229,23 +229,22 @@ class GameState {
     ///   - position: The position where the piece is attempting to move or rotate into.
     /// - Returns: `true` if the position is valid (no collisions and within boundaries); otherwise, `false`.
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
-        for (y, row) in piece.shape.enumerated() {
-            for (x, block) in row.enumerated() where block {
-                let boardX = Int(position.x) + x
-                let boardY = Int(position.y) + y
-                
-                // Boundary check
-                if boardX < 0 || boardX >= columns || boardY >= rows {
-                    return false
-                }
-                
-                // Overlap check with the existing pieces on the board
-                if boardY >= 0 && board[boardY][boardX] != nil {
-                    return false
-                }
+        // Flatten the piece shape into coordinates with their corresponding block status.
+        let coordinatesWithBlocks = piece.shape
+            .enumerated()
+            .flatMap { y, row -> [(x: Int, y: Int, block: Bool)] in
+                row.enumerated().map { x, block in (x: x + Int(position.x), y: y + Int(position.y), block: block) }
             }
+            .filter { $0.block } // Consider only the blocks (true values).
+        // Perform boundary and overlap checks.
+        return coordinatesWithBlocks.allSatisfy { coordinate in
+            let (x, y, _) = coordinate
+            // Boundary check
+            let isInBounds = x >= 0 && x < columns && y < rows
+            // Overlap check: true if y is negative or the position on the board is empty.
+            let noOverlap = y < 0 || board.indices.contains(y) && board[y].indices.contains(x) && board[y][x] == nil
+            return isInBounds && noOverlap
         }
-        return true
     }
     
     // MARK: - Helper Functions
