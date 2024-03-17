@@ -43,6 +43,11 @@ class GameState {
     
     // MARK: - Game Session
     
+    func startGame() {
+        resetGameState()
+        setupGameTimer()
+    }
+    
     func togglePauseResume() {
         isPaused.toggle()
         if isPaused {
@@ -52,29 +57,29 @@ class GameState {
         }
     }
     
-    func startGame() {
-        resetGameState()
-        setupGameTimer()
-    }
-    
     private func gameOver() {
         isGameOver = true
         gameTimer?.invalidate()
     }
     
     @objc private func gameTick() {
-        if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop = 0
-            processPieceMovement()
-        } else {
-            let currentTime = Date().timeIntervalSinceReferenceDate
-            timeSinceLastDrop += currentTime - (lastUpdateTime ?? currentTime)
+        guard !isGameOver && !isPaused else { return }
+        let currentTime = Date().timeIntervalSinceReferenceDate
+        if let lastTime = lastUpdateTime {
+            timeSinceLastDrop += currentTime - lastTime
         }
-        lastUpdateTime = Date().timeIntervalSinceReferenceDate
+        lastUpdateTime = currentTime
+        
+        if timeSinceLastDrop >= dropDelay {
+            timeSinceLastDrop -= dropDelay
+            attemptMoveDownOrLockPiece()
+        }
     }
     
-    private func processPieceMovement() {
-        if !movePieceDown() {
+    private func tickDown() {
+        guard let currentPiece = currentPiece, !movePieceDown() else { return }
+        updateBoard()
+        if shouldLockPiece(currentPiece) {
             lockPiece()
             removeCompletedLines()
             prepareNextPiece()
@@ -110,10 +115,10 @@ class GameState {
         }
     }
     
-    func setupGameTimer() {
+    private func setupGameTimer() {
         lastUpdateTime = Date().timeIntervalSinceReferenceDate
-        gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { _ in
-            self.gameTick()
+        gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
+            self?.gameTick()
         }
     }
     
@@ -154,11 +159,10 @@ class GameState {
     
     func dropPiece() {
         while movePieceDown() {}
+        updateBoard()
         lockPiece()
         removeCompletedLines()
         prepareNextPiece()
-        updateBoard()
-        timeSinceLastDrop = 0
     }
     
     // MARK: - Piece Management
@@ -166,42 +170,48 @@ class GameState {
     func prepareNextPiece() {
         currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
-        if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
+        if let currentPiece = currentPiece, !isPositionValid(piece: currentPiece, position: currentPiece.position) {
             triggerGameOver()
+        } else {
+            updateBoard()
         }
     }
     
     func movePieceDown() -> Bool {
         guard let currentPiece = currentPiece else { return false }
         let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
-        
         if isPositionValid(piece: currentPiece, position: newPosition) {
             self.currentPiece?.position = newPosition
             updateBoard()
             return true
         } else {
-            if shouldLockPiece(currentPiece) {
+            let blocksDirectlyBelow = currentPiece.generateBlocks().map {
+                Block(x: $0.x, y: $0.y + 1, color: $0.color, parentPieceID: $0.parentPieceID)
+            }
+            
+            let shouldLock = blocksDirectlyBelow.contains { block in
+                block.y >= rows || isBlockOccupied(block)
+            }
+            
+            if shouldLock {
                 lockPiece()
             }
+            
             return false
         }
     }
     
-    func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
-        let newBlocks = piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1))
-        
-        return newBlocks.contains { block in
-            return block.y >= rows || isBlockOccupied(block)
+    private func shouldLockPiece(_ piece: TetrisPiece) -> Bool {
+        for transformedBlock in piece.transformedBlocks(position: CGPoint(x: piece.position.x, y: piece.position.y + 1)) {
+            if transformedBlock.y >= rows || isBlockOccupied(transformedBlock) {
+                return true
+            }
         }
+        return false
     }
     
     func lockPiece() {
         guard let piece = currentPiece else { return }
-        for block in piece.generateBlocks() {
-            if withinBounds(block: block) {
-                board[block.y][block.x] = block
-            }
-        }
         blocks += piece.generateBlocks()
         currentPiece = nil
         updateBoard()
@@ -271,11 +281,17 @@ class GameState {
     }
     
     func resetGameState() {
-        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+        clearBoard()
         blocks.removeAll()
         score = 0
         isGameOver = false
         isPaused = false
+        isPieceHeld = false
+        heldPiece = nil
+        currentPiece = nil
+        nextPiece = nil
+        timeSinceLastDrop = 0
+        lastUpdateTime = nil
         prepareNextPiece()
     }
     
@@ -284,10 +300,11 @@ class GameState {
     }
     
     private func movePiece(deltaX: Int) {
-        guard let piece = currentPiece, !isGameOver else { return }
+        guard let piece = currentPiece else { return }
         let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
         if isPositionValid(piece: piece, position: newPosition) {
             currentPiece?.position = newPosition
+            updateBoard()
         }
     }
     
