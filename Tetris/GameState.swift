@@ -53,6 +53,7 @@ class GameState {
             removeCompletedLines()
             prepareNextPiece()
         }
+        updateBoardWithCurrentPiece()
     }
     
     /// Pauses and resumes the game
@@ -165,21 +166,34 @@ class GameState {
     
     // MARK: - Board & Score Management
     
+    private func updateBoardWithCurrentPiece() {
+        clearBoard()
+        // Add the current piece's blocks to the board.
+        if let piece = currentPiece {
+            let blocks = piece.generateBlocks()
+            for block in blocks where block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
+                board[block.y][block.x] = block
+            }
+        }
+        // Re-add locked blocks to the board.
+        for block in blocks {
+            if block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
+                board[block.y][block.x] = block
+            }
+        }
+    }
+    
     /// Locks the current piece into its position on the board, marking it as a permanent block, and then checks for completed lines.
+    private func clearBoard() {
+        // Clear the board before updating it with the current piece's position.
+        board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
+    }
+    
     private func lockPiece() {
-        // Add the blocks of the current piece to the locked blocks list.
         guard let piece = currentPiece else { return }
         let blocksToAdd = piece.generateBlocks()
         self.blocks.append(contentsOf: blocksToAdd)
-        
-        // Update the board representation with the new blocks.
-        for block in blocksToAdd {
-            guard block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns else { continue }
-            board[block.y][block.x] = block
-        }
-        
-        // Reset the current piece as it's now locked.
-        currentPiece = nil
+        currentPiece = nil // The piece is now locked, so remove it as the current piece
     }
     
     /// Checks each row of the board for completion (full row), clears them, and updates the score accordingly.
