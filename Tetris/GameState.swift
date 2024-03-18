@@ -52,14 +52,12 @@ class GameState {
         isPaused.toggle()
         if isPaused {
             gameTimer?.invalidate()
-        } else if isGameOver {
-            startGame()
         } else {
             setupGameTimer()
         }
     }
     
-    @objc private func processTime() {
+    @objc private func handleGameTick() {
         assert(Thread.isMainThread, "gameTick must be executed on the main thread.")
         guard !isGameOver && !isPaused else { return }
         
@@ -93,7 +91,7 @@ class GameState {
         assert(Thread.isMainThread, "setupGameTimer must be called from the main thread.")
         lastUpdateTime = Date().timeIntervalSinceReferenceDate
         gameTimer = Timer.scheduledTimer(withTimeInterval: 0.01, repeats: true) { [weak self] _ in
-            self?.processTime()
+            self?.handleGameTick()
         }
     }
     
@@ -226,10 +224,9 @@ class GameState {
         for block in blocks where withinBounds(block: block) {
             board[block.y][block.x] = block
         }
-        if let piece = currentPiece {
-            for block in piece.generateBlocks() where withinBounds(block: block) {
-                board[block.y][block.x] = block
-            }
+        guard let piece = currentPiece else { return }
+        for block in piece.generateBlocks() where withinBounds(block: block) {
+            board[block.y][block.x] = block
         }
         updateShadowPiece()
     }
