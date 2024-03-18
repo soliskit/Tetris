@@ -82,7 +82,7 @@ class GameState {
     // MARK: - Piece Movement
     
     func holdOrSwitchPiece() {
-        if let held = heldPiece {
+        if let _ = heldPiece {
             swap(&currentPiece, &heldPiece)
             currentPiece?.position = CGPoint(x: columns / 2, y: 0)
             if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
@@ -153,7 +153,7 @@ class GameState {
         let generatedBlocks = piece.generateBlocks(position: position)
         return generatedBlocks.allSatisfy { block in
             let isInBounds = block.x >= 0 && block.x < columns && block.y >= 0 && block.y < rows
-            let isSpaceEmpty = board[block.y][block.x] == nil || lockedBlocks.contains(where: { $0.x == block.x && $0.y == block.y })
+            let isSpaceEmpty = board[block.y][block.x] == nil || blocks.contains(where: { $0.x == block.x && $0.y == block.y })
             return isInBounds && isSpaceEmpty
         }
     }
