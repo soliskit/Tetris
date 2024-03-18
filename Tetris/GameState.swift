@@ -20,7 +20,6 @@ class GameState {
     var board: [[Block?]] = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     private(set) var blocks: [Block] = []
     private(set) var currentPiece: TetrisPiece?
-    private(set) var shadowPiece: TetrisPiece?
     private(set) var heldPiece: TetrisPiece?
     private(set) var nextPiece: TetrisPiece?
     private(set) var isPieceHeld: Bool = false
@@ -150,7 +149,6 @@ class GameState {
             endGame()
         } else {
             updateBoard()
-            updateShadowPiece()
         }
     }
 
@@ -192,7 +190,6 @@ class GameState {
         removeCompletedLines()
         prepareNextPiece()
         updateBoard()
-        updateShadowPiece()
     }
     
     private func canLockPiece(_ piece: TetrisPiece) -> Bool {
@@ -227,7 +224,6 @@ class GameState {
         for block in piece.generateBlocks() where withinBounds(block: block) {
             board[block.y][block.x] = block
         }
-        updateShadowPiece()
     }
 
     func removeCompletedLines() {
@@ -264,7 +260,6 @@ class GameState {
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
         isPieceHeld = false
         heldPiece = nil
-        shadowPiece = nil
         timeSinceLastDrop = 0
         lastUpdateTime = nil
         clearBoard()
@@ -292,23 +287,8 @@ class GameState {
         prepareNextPiece()
         return false
     }
-    
-    private func updateShadowPiece() {
-        guard let currentPiece = currentPiece else {
-            shadowPiece = nil
-            return
-        }
-        var projectedPiece = currentPiece
-        while isPositionValid(piece: projectedPiece, position: CGPoint(x: projectedPiece.position.x, y: projectedPiece.position.y + 1)) {
-            projectedPiece.position.y += 1
-        }
-        shadowPiece = projectedPiece
-    }
 }
 
 enum GameStateStatus {
-    case ready
-    case playing
-    case paused
-    case gameOver
+    case ready, playing, paused, gameOver
 }
