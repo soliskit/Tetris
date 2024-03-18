@@ -136,21 +136,24 @@ class GameState {
 
     private func lockPiece() {
         guard let piece = currentPiece else { return }
-        let blocksToLock = piece.generateBlocks().map { block -> Block in
-            var lockedBlock = block
-            lockedBlock.isLocked = true // Mark the block as locked.
-            return lockedBlock
+        blocks = blocks.map { block in
+            var updatedBlock = block
+            if updatedBlock.parentPieceID == piece.id {
+                updatedBlock.isLocked = true
+            }
+            return updatedBlock
         }
-        blocks.append(contentsOf: blocksToLock)
-        blocks.removeAll(where: { $0.parentPieceID == piece.id && !$0.isLocked })
+        blocks.removeAll { !$0.isLocked && $0.parentPieceID != piece.id }
         removeCompletedLines()
-        if blocks.contains(where: { $0.y == 0 && $0.isLocked }) {
+        
+        if blocks.contains(where: { Int(round($0.y)) == 0 && $0.isLocked }) {
             endGame()
         } else {
             prepareNextPiece()
         }
         updateBoard()
     }
+
     
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
@@ -168,16 +171,22 @@ class GameState {
     // MARK: - Board & Score Management
     
     func updateBoard() {
-        guard status == .playing, let piece = currentPiece else { return }
+        guard status == .playing else { return }
         clearBoard()
+        if let piece = currentPiece, isPositionValid(piece: piece, position: piece.position) {
+            blocks.removeAll { !$0.isLocked && $0.parentPieceID == piece.id }
+            let visualizationBlocks = piece.generateBlocks().map { block -> Block in
+                var movingBlock = block
+                movingBlock.isLocked = false
+                return movingBlock
+            }
+            blocks.append(contentsOf: visualizationBlocks)
+        }
         blocks.forEach { block in
             let xIndex = Int(round(block.x))
             let yIndex = Int(round(block.y))
-            
             if xIndex >= 0, xIndex < columns, yIndex >= 0, yIndex < rows {
-                if block.isLocked || isPositionValid(piece: piece, position: CGPoint(x: CGFloat(xIndex), y: CGFloat(yIndex))) {
-                    board[yIndex][xIndex] = block
-                }
+                board[yIndex][xIndex] = block
             }
         }
     }
