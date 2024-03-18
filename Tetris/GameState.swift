@@ -152,18 +152,11 @@ class GameState {
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
         return generatedBlocks.allSatisfy { block in
-            // Check if block is within the game board boundaries.
-            guard block.x >= 0, block.x < columns, block.y < rows else { return false }
-            // Allow blocks to move down if the space below is empty or contains a block from the same piece.
-            if block.y >= 0 { // Check for blocks above the board's bottom.
-                let isOccupied = board[block.y][block.x] != nil
-                let isCurrentPieceBlock = board[block.y][block.x]?.parentPieceID == piece.id
-                return !isOccupied || isCurrentPieceBlock
-            }
-            return true
+            let isInBounds = block.x >= 0 && block.x < columns && block.y >= 0 && block.y < rows
+            let isSpaceEmpty = board[block.y][block.x] == nil || lockedBlocks.contains(where: { $0.x == block.x && $0.y == block.y })
+            return isInBounds && isSpaceEmpty
         }
     }
-
     
     // MARK: - Board & Score Management
     
