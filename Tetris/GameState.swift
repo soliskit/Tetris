@@ -35,16 +35,11 @@ class GameState {
         return false
     }
     
-    // MARK: - Initialization
-    init() {
-        prepareNextPiece()
-    }
-    
     // MARK: - Game Session
     
     func startGame() {
         assert(isGameOver, "startGame called but game is not in a 'game over' state.")
-        resetGameState()
+        prepareNewGame()
         setupGameTimer()
     }
     
@@ -54,10 +49,11 @@ class GameState {
     }
     
     func togglePauseResume() {
-        assert(!isGameOver, "togglePauseResume called during 'game over' state.")
         isPaused.toggle()
         if isPaused {
             gameTimer?.invalidate()
+        } else if isGameOver {
+            startGame()
         } else {
             setupGameTimer()
         }
@@ -227,13 +223,11 @@ class GameState {
     func updateBoard() {
         guard !isGameOver else { return }
         clearBoard()
-        blocks.forEach { block in
-            if withinBounds(block: block) {
-                board[block.y][block.x] = block
-            }
+        for block in blocks where withinBounds(block: block) {
+            board[block.y][block.x] = block
         }
-        currentPiece?.generateBlocks().forEach { block in
-            if withinBounds(block: block) {
+        if let piece = currentPiece {
+            for block in piece.generateBlocks() where withinBounds(block: block) {
                 board[block.y][block.x] = block
             }
         }
@@ -272,20 +266,20 @@ class GameState {
         board = Array(repeating: Array(repeating: nil, count: columns), count: rows)
     }
     
-    func resetGameState() {
-        guard isGameOver, !isPaused else { return }
-        clearBoard()
-        blocks.removeAll()
-        score = 0
+    func prepareNewGame() {
         isGameOver = false
         isPaused = false
+        score = 0
+        blocks.removeAll()
+        currentPiece = TetrisPieceFactory.createPiece(columns: columns)
+        nextPiece = TetrisPieceFactory.createPiece(columns: columns)
         isPieceHeld = false
         heldPiece = nil
-        currentPiece = nil
-        nextPiece = nil
+        shadowPiece = nil
         timeSinceLastDrop = 0
         lastUpdateTime = nil
-        prepareNextPiece()
+        clearBoard()
+        updateBoard()
     }
     
     private func withinBounds(block: Block) -> Bool {
