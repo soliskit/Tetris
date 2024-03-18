@@ -169,22 +169,22 @@ class GameState {
     func updateBoard() {
         guard status == .playing else { return }
         clearBoard()
-        if let piece = currentPiece, isPositionValid(piece: piece, position: piece.position) {
-            blocks.removeAll { !$0.isLocked && $0.parentPieceID == piece.id }
-            let visualizationBlocks = piece.generateBlocks().map { block -> Block in
-                var movingBlock = block
-                movingBlock.isLocked = false
-                return movingBlock
-            }
-            blocks.append(contentsOf: visualizationBlocks)
-        }
-        blocks.forEach { block in
+        var visualizationBlocks: [Block] = []
+        for block in blocks where block.isLocked {
             let xIndex = Int(round(block.x))
             let yIndex = Int(round(block.y))
             if xIndex >= 0, xIndex < columns, yIndex >= 0, yIndex < rows {
                 board[yIndex][xIndex] = block
+                visualizationBlocks.append(block)
             }
         }
+        if let piece = currentPiece, isPositionValid(piece: piece, position: piece.position) {
+            let pieceBlocks = piece.generateBlocks().map { block -> Block in
+                return Block(x: block.x, y: block.y, color: block.color, isLocked: false, parentPieceID: piece.id)
+            }
+            visualizationBlocks.append(contentsOf: pieceBlocks)
+        }
+        blocks = visualizationBlocks
     }
 
     private func removeCompletedLines() {
