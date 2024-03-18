@@ -24,8 +24,7 @@ class GameState {
     private(set) var heldPiece: TetrisPiece?
     private(set) var nextPiece: TetrisPiece?
     private(set) var isPieceHeld: Bool = false
-    var isPaused: Bool = false
-    private(set) var isGameOver: Bool = true
+    private(set) var status: GameStateStatus = .ready
     private(set) var score: Int = 0
     
     var isCurrentPositionValid: Bool {
@@ -38,37 +37,41 @@ class GameState {
     // MARK: - Game Session
     
     func startGame() {
-        assert(isGameOver, "startGame called but game is not in a 'game over' state.")
+        assert(status == .ready || status == .gameOver, "startGame called but game is not ready or already over.")
         prepareNewGame()
+        status = .playing
         setupGameTimer()
     }
     
     private func endGame() {
-        isGameOver = true
+        status = .gameOver
         gameTimer?.invalidate()
     }
     
     func togglePauseResume() {
-        isPaused.toggle()
-        if isPaused {
-            gameTimer?.invalidate()
-        } else {
-            setupGameTimer()
+        switch status {
+            case .playing:
+                gameTimer?.invalidate()
+                status = .paused
+            case .paused:
+                status = .playing
+                setupGameTimer()
+            default:
+                break
         }
     }
-    
+
     @objc private func handleGameTick() {
-        assert(Thread.isMainThread, "gameTick must be executed on the main thread.")
-        guard !isGameOver && !isPaused else { return }
-        
+        assert(Thread.isMainThread, "handleGameTick must be executed on the main thread.")
+        guard status == .playing else { return }
         let currentTime = Date().timeIntervalSinceReferenceDate
-        if let lastTime = lastUpdateTime {
-            timeSinceLastDrop += currentTime - lastTime
+        if let lastUpdateTime = self.lastUpdateTime {
+            timeSinceLastDrop += currentTime - lastUpdateTime
         }
-        lastUpdateTime = currentTime
+        self.lastUpdateTime = currentTime
         
         if timeSinceLastDrop >= dropDelay {
-            timeSinceLastDrop -= dropDelay
+            timeSinceLastDrop = 0
             processPieceMovement()
         }
     }
@@ -122,7 +125,7 @@ class GameState {
     }
     
     func rotatePiece() {
-        guard var piece = currentPiece, !isGameOver else { return }
+        guard status == .playing, var piece = currentPiece else { return }
         piece.rotate()
         if isPositionValid(piece: piece, position: piece.position) {
             currentPiece = piece
@@ -215,7 +218,7 @@ class GameState {
     // MARK: - Board & Score Management
     
     func updateBoard() {
-        guard !isGameOver else { return }
+        guard status == .playing else { return }
         clearBoard()
         for block in blocks where withinBounds(block: block) {
             board[block.y][block.x] = block
@@ -226,7 +229,7 @@ class GameState {
         }
         updateShadowPiece()
     }
-    
+
     func removeCompletedLines() {
         let completedLines = (0..<rows).filter { row in
             board[row].allSatisfy { $0 != nil }
@@ -254,8 +257,7 @@ class GameState {
     }
     
     func prepareNewGame() {
-        isGameOver = false
-        isPaused = false
+        status = .ready
         score = 0
         blocks.removeAll()
         currentPiece = TetrisPieceFactory.createPiece(columns: columns)
@@ -302,4 +304,11 @@ class GameState {
         }
         shadowPiece = projectedPiece
     }
+}
+
+enum GameStateStatus {
+    case ready
+    case playing
+    case paused
+    case gameOver
 }

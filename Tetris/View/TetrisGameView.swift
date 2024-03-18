@@ -56,18 +56,25 @@ struct TetrisGameView: View {
                 .onTapGesture {
                     gameState.rotatePiece()
                 }
-            
             // MARK: - Game Start, Pause & Resume Button
-            if gameState.isGameOver {
-                Button("Start New Game") {
-                    gameState.startGame()
-                }
-                .buttonStyle(GameControlButtonStyle())
-            } else {
-                Button(gameState.isPaused ? "Resume" : "Pause") {
-                    gameState.togglePauseResume()
-                }
-                .buttonStyle(GameControlButtonStyle())
+            switch gameState.status {
+                case .ready:
+                    EmptyView()
+                case .playing:
+                    Button("Pause") {
+                        gameState.togglePauseResume()
+                    }
+                    .buttonStyle(GameControlButtonStyle())
+                case .paused:
+                    Button("Resume") {
+                        gameState.togglePauseResume()
+                    }
+                    .buttonStyle(GameControlButtonStyle())
+                case .gameOver:
+                    Button("Start New Game") {
+                        gameState.startGame()
+                    }
+                    .buttonStyle(GameControlButtonStyle())
             }
         }
         .padding()
@@ -80,7 +87,7 @@ struct TetrisGameView: View {
         .onAppear {
             gameState.startGame()
         }
-        .onChange(of: gameState.isGameOver) {
+        .onChange(of: gameState.status) {
             if gameState.score > highScore {
                 highScore = gameState.score
             }
