@@ -9,8 +9,8 @@ import SwiftUI
 
 struct Block: Identifiable {
     let id = UUID()
-    let x: CGFloat
-    let y: CGFloat
+    var x: CGFloat
+    var y: CGFloat
     let color: Color
     var isLocked: Bool = false
     let parentPieceID: UUID

@@ -192,15 +192,25 @@ class GameState {
     }
 
     private func removeCompletedLines() {
-        let completedLines = board
-            .enumerated()
-            .filter { $1.allSatisfy { $0 != nil } }
-            .map { $0.offset }
-        completedLines.forEach { rowIndex in
+        let completedLinesIndices = (0..<rows).filter { rowIndex in
+            board[rowIndex].allSatisfy { $0 != nil && $0!.isLocked }
+        }
+        score += completedLinesIndices.count * 100
+        for rowIndex in completedLinesIndices.reversed() {
             board.remove(at: rowIndex)
             board.insert(Array(repeating: nil, count: columns), at: 0)
+            blocks.removeAll { block in
+                Int(round(block.y)) == rowIndex && block.isLocked
+            }
+            blocks = blocks.map { block in
+                var newBlock = block
+                if Int(round(block.y)) < rowIndex {
+                    newBlock.y += 1
+                }
+                return newBlock
+            }
         }
-        score += completedLines.count * 100
+        updateBoard()
     }
     
     // MARK: - Helper Methods
