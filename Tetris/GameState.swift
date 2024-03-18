@@ -125,28 +125,25 @@ class GameState {
     // MARK: - Piece Management
         
     func prepareNextPiece() {
-        currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
-        nextPiece = TetrisPieceFactory.createPiece(columns: columns)
-        guard let currentPiece = currentPiece, isPositionValid(piece: currentPiece, position: currentPiece.position) else {
+        guard let nextPiece = nextPiece, isPositionValid(piece: nextPiece, position: CGPoint(x: columns / 2, y: 0)) else {
             endGame()
             return
         }
-        updateBoard()
+        currentPiece = nextPiece
+        self.nextPiece = TetrisPieceFactory.createPiece(columns: columns)
     }
 
     private func lockPiece() {
         guard let piece = currentPiece else { return }
-        blocks = blocks.map { block in
-            var updatedBlock = block
-            if updatedBlock.parentPieceID == piece.id {
-                updatedBlock.isLocked = true
-            }
-            return updatedBlock
+        let blocksToLock = piece.generateBlocks().map { block -> Block in
+            var lockedBlock = block
+            lockedBlock.isLocked = true
+            return lockedBlock
         }
-        blocks.removeAll { !$0.isLocked && $0.parentPieceID != piece.id }
+        blocks.removeAll { !$0.isLocked && $0.parentPieceID == piece.id }
+        blocks.append(contentsOf: blocksToLock)
         removeCompletedLines()
-        
-        if blocks.contains(where: { Int(round($0.y)) == 0 && $0.isLocked }) {
+        if blocks.contains(where: { $0.y == 0 && $0.isLocked }) {
             endGame()
         } else {
             prepareNextPiece()
