@@ -9,10 +9,11 @@ import SwiftUI
 
 struct Block: Identifiable {
     let id = UUID()
-    var x: Int
-    var y: Int
+    let x: CGFloat
+    let y: CGFloat
     let color: Color
-    var parentPieceID: UUID
+    var isLocked: Bool = false
+    let parentPieceID: UUID
 }
 
 struct TetrisPiece {
@@ -37,15 +38,16 @@ struct TetrisPiece {
     
     func generateBlocks(position: CGPoint? = nil) -> [Block] {
         let effectivePosition = position ?? self.position
-        let blockPositions = shape.enumerated().flatMap { y, row -> [(x: Int, y: Int, blockExists: Bool)] in
+        let blockPositions = shape.enumerated().flatMap { y, row -> [(x: CGFloat, y: CGFloat, blockExists: Bool)] in
             row.enumerated().map { x, blockExists in
-                (x: x, y: y, blockExists: blockExists)
+                (x: CGFloat(x), y: CGFloat(y), blockExists: blockExists)
             }
         }
         
         return blockPositions.filter { $0.blockExists }.map { pos in
-            let absolutePosition = CGPoint(x: pos.x + Int(effectivePosition.x), y: pos.y + Int(effectivePosition.y))
-            return Block(x: Int(absolutePosition.x), y: Int(absolutePosition.y), color: color, parentPieceID: id)
+            let absolutePosition = CGPoint(x: pos.x + effectivePosition.x, y: pos.y + effectivePosition.y)
+            return Block(x: absolutePosition.x, y: absolutePosition.y, color: color, parentPieceID: id)
         }
     }
+
 }

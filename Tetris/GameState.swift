@@ -136,24 +136,31 @@ class GameState {
 
     private func lockPiece() {
         guard let piece = currentPiece else { return }
-        let blocksToAdd = piece.generateBlocks()
-        blocks.append(contentsOf: blocksToAdd)
-        blocksToAdd.forEach { block in
-            board[block.y][block.x] = block
+        let blocksToLock = piece.generateBlocks().map { block -> Block in
+            var lockedBlock = block
+            lockedBlock.isLocked = true // Mark the block as locked.
+            return lockedBlock
         }
+        blocks.append(contentsOf: blocksToLock)
+        blocks.removeAll(where: { $0.parentPieceID == piece.id && !$0.isLocked })
         removeCompletedLines()
-        if blocks.contains(where: { $0.y == 0 }) {
+        if blocks.contains(where: { $0.y == 0 && $0.isLocked }) {
             endGame()
         } else {
             prepareNextPiece()
         }
+        updateBoard()
     }
     
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
         return generatedBlocks.allSatisfy { block in
-            let isInBounds = block.x >= 0 && block.x < columns && block.y >= 0 && block.y < rows
-            let isSpaceEmpty = board[block.y][block.x] == nil || blocks.contains(where: { $0.x == block.x && $0.y == block.y })
+            let xIndex = Int(round(block.x))
+            let yIndex = Int(round(block.y))
+            let isInBounds = xIndex >= 0 && xIndex < columns && yIndex >= 0 && yIndex < rows
+            let isSpaceEmpty = !blocks.contains { lockedBlock in
+                Int(round(lockedBlock.x)) == xIndex && Int(round(lockedBlock.y)) == yIndex && lockedBlock.isLocked
+            }
             return isInBounds && isSpaceEmpty
         }
     }
@@ -164,11 +171,13 @@ class GameState {
         guard status == .playing, let piece = currentPiece else { return }
         clearBoard()
         blocks.forEach { block in
-            board[block.y][block.x] = block
-        }
-        if isPositionValid(piece: piece, position: piece.position) {
-            piece.generateBlocks().forEach { block in
-                board[block.y][block.x] = block
+            let xIndex = Int(round(block.x))
+            let yIndex = Int(round(block.y))
+            
+            if xIndex >= 0, xIndex < columns, yIndex >= 0, yIndex < rows {
+                if block.isLocked || isPositionValid(piece: piece, position: CGPoint(x: CGFloat(xIndex), y: CGFloat(yIndex))) {
+                    board[yIndex][xIndex] = block
+                }
             }
         }
     }
