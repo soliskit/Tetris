@@ -48,7 +48,7 @@ struct TetrisGameView: View {
                             } else {
                                 // Vertical move, but we only care about downward swipes here
                                 if gesture.translation.height > 0 {
-                                    gameState.dropPiece()
+                                    gameState.movePieceDown()
                                 }
                             }
                         }
@@ -80,7 +80,7 @@ struct TetrisGameView: View {
         .padding()
         .background(.teal.opacity(0.75))
         .background {
-            KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.dropPiece, hold: gameState.holdOrSwitchPiece)
+            KeyboardInputView(moveLeft: gameState.movePieceLeft, moveRight: gameState.movePieceRight, rotate: gameState.rotatePiece, drop: gameState.movePieceDown, hold: gameState.holdOrSwitchPiece)
         }
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding()
