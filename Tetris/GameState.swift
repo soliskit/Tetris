@@ -127,11 +127,11 @@ class GameState {
     func prepareNextPiece() {
         currentPiece = nextPiece ?? TetrisPieceFactory.createPiece(columns: columns)
         nextPiece = TetrisPieceFactory.createPiece(columns: columns)
-        if let currentPiece = currentPiece, !isPositionValid(piece: currentPiece, position: currentPiece.position) {
+        guard let currentPiece = currentPiece, isPositionValid(piece: currentPiece, position: currentPiece.position) else {
             endGame()
-        } else {
-            updateBoard()
+            return
         }
+        updateBoard()
     }
 
     private func lockPiece() {
