@@ -26,13 +26,6 @@ class GameState {
     private(set) var status: GameStateStatus = .ready
     private(set) var score: Int = 0
     
-    var isCurrentPositionValid: Bool {
-        if let currentPiece = currentPiece {
-            return isPositionValid(piece: currentPiece, position: currentPiece.position)
-        }
-        return false
-    }
-    
     // MARK: - Game Session
     
     func startGame() {
@@ -100,17 +93,15 @@ class GameState {
     // MARK: - Piece Movement
     
     func holdOrSwitchPiece() {
-        if let pieceToSwitch = heldPiece {
-            heldPiece = currentPiece
-            currentPiece = pieceToSwitch
+        if isPieceHeld {
+            swap(&currentPiece, &heldPiece)
             currentPiece?.position = CGPoint(x: columns / 2, y: 0)
-            if !isPositionValid(piece: currentPiece!, position: currentPiece!.position) {
-                
-            }
         } else {
             heldPiece = currentPiece
             prepareNextPiece()
         }
+        isPieceHeld.toggle()
+        updateBoard()
     }
     
     func movePieceLeft() {
@@ -165,33 +156,26 @@ class GameState {
         }
     }
 
-    
     private func lockPiece() {
         guard let piece = currentPiece else { return }
-        piece.generateBlocks().forEach { block in
+        let blocksToAdd = piece.generateBlocks()
+        blocks.append(contentsOf: blocksToAdd)
+        blocksToAdd.forEach { block in
             board[block.y][block.x] = block
-            blocks.append(block)
         }
+        removeCompletedLines()
         if blocks.contains(where: { $0.y == 0 }) {
             endGame()
-            return
+        } else {
+            prepareNextPiece()
         }
-        currentPiece = nil
-        removeCompletedLines()
-        prepareNextPiece()
-        updateBoard()
     }
     
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
         return generatedBlocks.allSatisfy { block in
-            guard block.x >= 0, block.x < columns, block.y >= 0, block.y < rows else {
-                return false
-            }
-            
-            let isPositionEmptyOrCurrentPiece = board[block.y][block.x]?.parentPieceID == piece.id || board[block.y][block.x] == nil
-            
-            return isPositionEmptyOrCurrentPiece
+            guard block.x >= 0, block.x < columns, block.y >= 0, block.y < rows else { return false }
+            return board[block.y][block.x]?.parentPieceID == piece.id || board[block.y][block.x] == nil
         }
     }
     
@@ -210,24 +194,16 @@ class GameState {
         }
     }
 
-    func removeCompletedLines() {
-        let completedLines = (0..<rows).filter { row in
-            board[row].allSatisfy { $0 != nil }
+    private func removeCompletedLines() {
+        let completedLines = board
+            .enumerated()
+            .filter { $1.allSatisfy { $0 != nil } }
+            .map { $0.offset }
+        completedLines.forEach { rowIndex in
+            board.remove(at: rowIndex)
+            board.insert(Array(repeating: nil, count: columns), at: 0)
         }
-        completedLines
-            .reversed()
-            .forEach { index in
-                board.remove(at: index)
-                board.insert(Array(repeating: nil, count: columns), at: 0)
-            }
-        applyScoring(linesRemoved: completedLines.count)
-        updateBoard()
-    }
-    
-    private func applyScoring(linesRemoved: Int) {
-        let pointsPerLine = 100
-        let scoreBonus = linesRemoved * pointsPerLine
-        score += scoreBonus
+        score += completedLines.count * 100
     }
     
     // MARK: - Helper Methods
@@ -250,12 +226,17 @@ class GameState {
         updateBoard()
     }
     
-    private func movePiece(deltaX: Int) {
+    func movePiece(deltaX: Int, deltaY: Int = 0) {
         guard let piece = currentPiece else { return }
-        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y)
+        let newPosition = CGPoint(x: piece.position.x + CGFloat(deltaX), y: piece.position.y + CGFloat(deltaY))
         if isPositionValid(piece: piece, position: newPosition) {
             currentPiece?.position = newPosition
             updateBoard()
+            if deltaY != 0 {
+                lockPiece()
+                removeCompletedLines()
+                prepareNextPiece()
+            }
         }
     }
     
