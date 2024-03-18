@@ -222,13 +222,6 @@ class GameState {
         }
         return false
     }
-    
-    private func canLockPiece(_ piece: TetrisPiece) -> Bool {
-        let nextDownPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
-        let isValidNextDownPosition = isPositionValid(piece: piece, position: nextDownPosition)
-        
-        return !isValidNextDownPosition
-    }
 }
 
 enum GameStateStatus {
