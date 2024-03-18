@@ -154,7 +154,6 @@ class GameState {
         updateBoard()
     }
 
-    
     private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
         return generatedBlocks.allSatisfy { block in
