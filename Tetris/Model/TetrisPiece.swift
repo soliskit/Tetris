@@ -35,7 +35,8 @@ struct TetrisPiece {
         shape = rotations[rotationIndex]
     }
     
-    func generateBlocks() -> [Block] {
+    func generateBlocks(position: CGPoint? = nil) -> [Block] {
+        let effectivePosition = position ?? self.position
         let blockPositions = shape.enumerated().flatMap { y, row -> [(x: Int, y: Int, blockExists: Bool)] in
             row.enumerated().map { x, blockExists in
                 (x: x, y: y, blockExists: blockExists)
@@ -43,17 +44,8 @@ struct TetrisPiece {
         }
         
         return blockPositions.filter { $0.blockExists }.map { pos in
-            let absolutePosition = CGPoint(x: pos.x + Int(position.x), y: pos.y + Int(position.y))
+            let absolutePosition = CGPoint(x: pos.x + Int(effectivePosition.x), y: pos.y + Int(effectivePosition.y))
             return Block(x: Int(absolutePosition.x), y: Int(absolutePosition.y), color: color, parentPieceID: id)
-        }
-    }
-    
-    func transformedBlocks(position: CGPoint) -> [Block] {
-        shape.enumerated().flatMap { y, row in
-            row.enumerated().compactMap { x, isBlock in
-                guard isBlock else { return nil }
-                return Block(x: x + Int(position.x), y: y + Int(position.y), color: color, parentPieceID: id)
-            }
         }
     }
 }

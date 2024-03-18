@@ -147,30 +147,30 @@ class GameState {
             endGame()
         } else {
             updateBoard()
+            updateShadowPiece()
         }
     }
+
     
     func movePieceDown() -> Bool {
-        guard let currentPiece = currentPiece else { return false }
+        guard var currentPiece = currentPiece else { return false }
         let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
-        if isPositionValid(piece: currentPiece, position: newPosition) {
-            self.currentPiece?.position = newPosition
+        let blocksAtNewPosition = currentPiece.generateBlocks(position: newPosition)
+        let canMoveDown = blocksAtNewPosition.allSatisfy { block in
+            withinBounds(block: block) && board[block.y][block.x] == nil
+        }
+        if canMoveDown {
+            currentPiece.position = newPosition
             updateBoard()
             return true
         } else {
-            let blocksDirectlyBelow = currentPiece.generateBlocks().map {
-                Block(x: $0.x, y: $0.y + 1, color: $0.color, parentPieceID: $0.parentPieceID)
-            }
-            
-            let shouldLock = blocksDirectlyBelow.contains { block in
-                block.y >= rows || isBlockOccupied(block)
-            }
-            
-            if shouldLock {
+            if canLockPiece(currentPiece) {
                 lockPiece()
+                return false
+            } else {
+                endGame()
+                return false
             }
-            
-            return false
         }
     }
     
@@ -193,27 +193,23 @@ class GameState {
     }
     
     private func canLockPiece(_ piece: TetrisPiece) -> Bool {
-        for block in piece.generateBlocks() {
-            let newPos = CGPoint(x: block.x, y: block.y + 1)
-            let newPosIntY = Int(newPos.y)
-            if newPosIntY >= rows {
-                return true
-            }
-            if newPosIntY < rows && board[newPosIntY][block.x] != nil {
-                return true
-            }
-        }
-        return false
-    }
-  
-    func isBlockOccupied(_ block: Block) -> Bool {
-        guard block.y >= 0, block.y < rows, block.x >= 0, block.x < columns else { return true }
-        return board[block.y][block.x] != nil
+        let nextDownPosition = CGPoint(x: piece.position.x, y: piece.position.y + 1)
+        let isValidNextDownPosition = isPositionValid(piece: piece, position: nextDownPosition)
+        
+        return !isValidNextDownPosition
     }
     
-    func isBlockOverlapping(block: Block) -> Bool {
-        let newPos = CGPoint(x: block.x, y: block.y + 1)
-        return blocks.contains(where: { $0.x == Int(newPos.x) && $0.y == Int(newPos.y) })
+    func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
+        let generatedBlocks = piece.generateBlocks(position: position)
+        
+        return generatedBlocks.allSatisfy { block in
+            let withinBounds = block.x >= 0 && block.x < columns && block.y >= 0 && block.y < rows
+            let positionNotOccupied = board[block.y][block.x] == nil || board[block.y][block.x]?.parentPieceID == piece.id
+            let notOverlappingNextPosition = block.y + 1 < rows && (!blocks.contains { otherBlock in
+                otherBlock.x == block.x && otherBlock.y == block.y + 1 && otherBlock.parentPieceID != piece.id
+            })
+            return withinBounds && positionNotOccupied && notOverlappingNextPosition
+        }
     }
     
     // MARK: - Board & Score Management
@@ -249,12 +245,6 @@ class GameState {
         let pointsPerLine = 100
         let scoreBonus = linesRemoved * pointsPerLine
         score += scoreBonus
-    }
-    
-     func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
-        piece.generateBlocks().allSatisfy { block in
-            withinBounds(block: block) && (board[block.y][block.x] == nil || blocks.contains(where: { $0.id == block.id }))
-        }
     }
     
     // MARK: - Helper Methods
