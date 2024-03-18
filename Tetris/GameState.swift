@@ -151,38 +151,28 @@ class GameState {
             updateBoard()
         }
     }
-
     
     func movePieceDown() -> Bool {
-        guard var currentPiece = currentPiece else { return false }
+        guard let currentPiece = currentPiece else { return false }
         let newPosition = CGPoint(x: currentPiece.position.x, y: currentPiece.position.y + 1)
-        let blocksAtNewPosition = currentPiece.generateBlocks(position: newPosition)
-        let canMoveDown = blocksAtNewPosition.allSatisfy { block in
-            withinBounds(block: block) && board[block.y][block.x] == nil
-        }
-        if canMoveDown {
-            currentPiece.position = newPosition
+        if isPositionValid(piece: currentPiece, position: newPosition) {
+            self.currentPiece?.position = newPosition
             updateBoard()
             return true
         } else {
-            if canLockPiece(currentPiece) {
-                lockPiece()
-                return false
-            } else {
-                endGame()
-                return false
-            }
+            lockPiece()
+            return false
         }
     }
+
     
     private func lockPiece() {
         guard let piece = currentPiece else { return }
-        for block in piece.generateBlocks() {
-            guard withinBounds(block: block) else { continue }
+        piece.generateBlocks().forEach { block in
             board[block.y][block.x] = block
             blocks.append(block)
         }
-        if board.flatMap({ $0 }).contains(where: { $0 != nil && $0!.y == 0 }) {
+        if blocks.contains(where: { $0.y == 0 }) {
             endGame()
             return
         }
@@ -199,30 +189,31 @@ class GameState {
         return !isValidNextDownPosition
     }
     
-    func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
+    private func isPositionValid(piece: TetrisPiece, position: CGPoint) -> Bool {
         let generatedBlocks = piece.generateBlocks(position: position)
-        
         return generatedBlocks.allSatisfy { block in
-            let withinBounds = block.x >= 0 && block.x < columns && block.y >= 0 && block.y < rows
-            let positionNotOccupied = board[block.y][block.x] == nil || board[block.y][block.x]?.parentPieceID == piece.id
-            let notOverlappingNextPosition = block.y + 1 < rows && (!blocks.contains { otherBlock in
-                otherBlock.x == block.x && otherBlock.y == block.y + 1 && otherBlock.parentPieceID != piece.id
-            })
-            return withinBounds && positionNotOccupied && notOverlappingNextPosition
+            guard block.x >= 0, block.x < columns, block.y >= 0, block.y < rows else {
+                return false
+            }
+            
+            let isPositionEmptyOrCurrentPiece = board[block.y][block.x]?.parentPieceID == piece.id || board[block.y][block.x] == nil
+            
+            return isPositionEmptyOrCurrentPiece
         }
     }
     
     // MARK: - Board & Score Management
     
     func updateBoard() {
-        guard status == .playing else { return }
+        guard status == .playing, let piece = currentPiece else { return }
         clearBoard()
-        for block in blocks where withinBounds(block: block) {
+        blocks.forEach { block in
             board[block.y][block.x] = block
         }
-        guard let piece = currentPiece else { return }
-        for block in piece.generateBlocks() where withinBounds(block: block) {
-            board[block.y][block.x] = block
+        if isPositionValid(piece: piece, position: piece.position) {
+            piece.generateBlocks().forEach { block in
+                board[block.y][block.x] = block
+            }
         }
     }
 
@@ -264,10 +255,6 @@ class GameState {
         lastUpdateTime = nil
         clearBoard()
         updateBoard()
-    }
-    
-    private func withinBounds(block: Block) -> Bool {
-        block.x >= 0 && block.x < columns && block.y < rows
     }
     
     private func movePiece(deltaX: Int) {
