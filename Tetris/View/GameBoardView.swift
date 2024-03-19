@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct GameBoardView: View {
-    var gameState: GameState
+    private let rows: Int = 20
+    private let columns: Int = 10
+    @ObservedObject var gameManager: GameManager
     
     var body: some View {
         GeometryReader { geometry in
-            let blockSize = min(geometry.size.width / CGFloat(gameState.columns), geometry.size.height / CGFloat(gameState.rows))
-            let boardWidth = blockSize * CGFloat(gameState.columns)
-            let boardHeight = blockSize * CGFloat(gameState.rows)
+            let blockSize = min(geometry.size.width / CGFloat(columns), geometry.size.height / CGFloat(rows))
+            let boardWidth = blockSize * CGFloat(columns)
+            let boardHeight = blockSize * CGFloat(rows)
             
             ZStack {
                 Rectangle()
@@ -24,8 +26,7 @@ struct GameBoardView: View {
                 
                 drawGridLines(boardWidth: boardWidth, boardHeight: boardHeight, blockSize: blockSize)
                 
-                // Draw blocks from the gameState's blocks collection
-                ForEach(gameState.blocks) { block in
+                ForEach(gameManager.getAllBlocks(), id: \.id) { block in
                     Rectangle()
                         .foregroundColor(block.color)
                         .frame(width: blockSize, height: blockSize)
@@ -39,14 +40,12 @@ struct GameBoardView: View {
     
     private func drawGridLines(boardWidth: CGFloat, boardHeight: CGFloat, blockSize: CGFloat) -> some View {
         Path { path in
-            // Vertical lines
-            for column in 1..<gameState.columns {
+            for column in 1..<columns {
                 let x = blockSize * CGFloat(column)
                 path.move(to: CGPoint(x: x, y: 0))
                 path.addLine(to: CGPoint(x: x, y: boardHeight))
             }
-            // Horizontal lines
-            for row in 1..<gameState.rows {
+            for row in 1..<rows {
                 let y = blockSize * CGFloat(row)
                 path.move(to: CGPoint(x: 0, y: y))
                 path.addLine(to: CGPoint(x: boardWidth, y: y))
@@ -54,4 +53,8 @@ struct GameBoardView: View {
         }
         .stroke(Color.gray.opacity(0.5), lineWidth: 1)
     }
+}
+
+#Preview("Game Board") {
+    GameBoardView(gameManager: GameManager())
 }
