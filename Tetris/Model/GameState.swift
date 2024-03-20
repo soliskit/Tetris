@@ -7,8 +7,12 @@
 
 import Foundation
 
+/// Represents the current state of the game.
 enum GameState: String {
+    /// The game is currently in progress.
     case playing
+    /// The game is paused.
     case paused
+    /// The game is over.
     case gameOver
 }

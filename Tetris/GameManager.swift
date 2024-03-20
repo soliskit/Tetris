@@ -8,200 +8,175 @@
 import SwiftUI
 
 class GameManager: ObservableObject {
-    @Published var gameBoard: [[Block?]]
-    @Published var currentTetromino: [Block]?
-    @Published var heldTetromino: [Block]?
-    @Published var nextTetromino: [Block]?
-    @Published var gameState: GameState = .gameOver
-    @Published var score: Int = 0
-    
-    private var timer: Timer?
-    private let normalDropSpeed: TimeInterval = 0.5
-    private let fastDropSpeed: TimeInterval = 0.05
-    private var currentDropSpeed: TimeInterval = 0.5
-    
-    let rows: Int = 20
-    let columns: Int = 10
+    private let normalDropSpeed: TimeInterval = 1.0
+    private let softDropSpeed: TimeInterval = 0.1
+    @Published var currentPiece: Tetromino
+    @Published var heldPiece: Tetromino?
+    @Published var nextPiece: Tetromino
+    @Published var gameBoard: [[Tetromino?]]
+    @Published var gameTimer: Timer?
+    @Published var state: GameState = .paused
+    @Published var gameScore: Int = 0
+    @Published var gameLevel: Int = 1
     
     init() {
-        self.gameBoard = Array(repeating: Array(repeating: nil, count: columns), count: rows)
-        spawnTetromino()
+        currentPiece = TetrominoFactory.generate()
+        nextPiece = TetrominoFactory.generate()
+        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
     
-    func getAllBlocks() -> [Block] {
-        var allBlocks = gameBoard.flatMap { $0 }.compactMap { $0 }
-        if let tetromino = currentTetromino {
-            allBlocks.append(contentsOf: tetromino)
-        }
-        return allBlocks
+    func startGame() {
+        currentPiece = TetrominoFactory.generate()
+        nextPiece = TetrominoFactory.generate()
+        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
+        state = .playing
+        gameScore = 0
+        gameLevel = 1
+        startGameTimer()
     }
     
-    private func isPositionValid(x: Int, y: Int, shouldConsiderSpawnArea: Bool = false) -> Bool {
-        let xIsValid = x >= 0 && x < columns
-        let yIsValidForSpawn = shouldConsiderSpawnArea ? (y >= -1 && y < rows) : (y >= 0 && y < rows)
-        if !(xIsValid && yIsValidForSpawn) {
-            return false
+    private func pauseGame() {
+        guard state == .playing else { return }
+        state = .paused
+        gameTimer?.invalidate()
+    }
+    
+    private func resumeGame() {
+        guard state == .paused else { return }
+        state = .playing
+        startGameTimer()
+    }
+    
+    private func gameOver() {
+        state = .gameOver
+        gameTimer?.invalidate()
+    }
+    
+    private func startGameTimer(withSoftDrop: Bool = false) {
+        gameTimer?.invalidate()
+        let interval = withSoftDrop ? softDropSpeed : normalDropSpeed / Double(gameLevel)
+        gameTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            self?.movePieceDown(isSoftDropping: withSoftDrop)
         }
-        if y >= 0 && y < rows {
-            return gameBoard[y][x] == nil
+    }
+    
+    private func movePieceDown(isSoftDropping: Bool = false) {
+        guard state == .playing else { return }
+        currentPiece.row += 1
+        if !isPiecePositionValid(currentPiece) {
+            currentPiece.row -= 1
+            lockPiecePosition()
+            spawnNewPiece()
+            if isSoftDropping {
+                startGameTimer()
+            }
+        }
+    }
+    
+    private func lockPiecePosition() {
+        // Logic to lock the Tetromino on the game board and check for completed lines
+    }
+    
+    private func spawnNewPiece() {
+        currentPiece = nextPiece
+        nextPiece = TetrominoFactory.generate()
+    }
+    
+    func handleAction(_ action: PlayerAction) {
+        switch action {
+            case .moveLeft:
+                movePieceLeft()
+            case .moveRight:
+                movePieceRight()
+            case .hold:
+                holdPiece()
+            case .softDrop:
+                toggleSoftDrop()
+            case .pause:
+                pauseGame()
+            case .start:
+                startGame()
+        }
+    }
+    
+    private func movePieceLeft() {
+        guard state == .playing else { return }
+        currentPiece.column -= 1
+        guard isPiecePositionValid(currentPiece) else {
+            currentPiece.column += 1
+            return
+        }
+    }
+    
+    private func movePieceRight() {
+        guard state == .playing else { return }
+        currentPiece.column += 1
+        guard isPiecePositionValid(currentPiece) else {
+            currentPiece.column -= 1
+            return
+        }
+    }
+    
+    private func holdPiece() {
+        guard state == .playing, let swapPiece = heldPiece else { return }
+        heldPiece = currentPiece
+        currentPiece = swapPiece
+    }
+    
+    func toggleSoftDrop() {
+        guard state == .playing else { return }
+        if gameTimer?.timeInterval != softDropSpeed {
+            startGameTimer(withSoftDrop: true)
+        } else {
+            startGameTimer()
+        }
+    }
+    
+    func rotateCurrentPiece(clockwise: Bool) {
+        guard state == .playing else { return }
+        currentPiece.rotate(clockwise: clockwise)
+        
+        if isPiecePositionValid(currentPiece) {
+            updateGameAfterRotation()
+        } else {
+            if !applyWallKick(clockwise: clockwise) {
+                // If wall kick fails, revert the rotation
+                currentPiece.rotate(clockwise: !clockwise)
+            } else {
+                updateGameAfterRotation()
+            }
+        }
+    }
+    
+    private func applyWallKick(clockwise: Bool) -> Bool {
+        // Implement wall kick. This tries to move the piece into a valid position if the initial rotation is blocked.
+        // Returns true if a valid position is found, false otherwise.
+        
+        return false
+    }
+    
+    private func isPiecePositionValid(_ piece: Tetromino) -> Bool {
+        for y in 0..<piece.shape.count {
+            for x in 0..<piece.shape[y].count {
+                if piece.shape[y][x] {
+                    let boardRow = Int(piece.row) + y
+                    let boardColumn = Int(piece.column) + x
+                    if boardRow < 0 || boardRow >= gameBoard.count || boardColumn < 0 || boardColumn >= gameBoard[0].count {
+                        return false
+                    }
+                    
+                    if gameBoard[boardRow][boardColumn] != nil {
+                        return false
+                    }
+                }
+            }
         }
         return true
     }
     
-    private func dropAndUpdateTetrominoPosition() {
-        guard let tetromino = currentTetromino else { return }
-        let canMoveDown = tetromino.allSatisfy { block in
-            let newY = block.y + 1
-            return newY < rows && isPositionValid(x: block.x, y: newY) && gameBoard[newY][block.x] == nil
-        }
-        if canMoveDown {
-            tetromino.forEach { block in
-                if isPositionValid(x: block.x, y: block.y) {
-                    gameBoard[block.y][block.x] = nil
-                }
-            }
-            let movedTetromino = tetromino.map { Block(x: $0.x, y: $0.y + 1, color: $0.color) }
-            movedTetromino.forEach { block in
-                if isPositionValid(x: block.x, y: block.y) {
-                    gameBoard[block.y][block.x] = block
-                }
-            }
-            currentTetromino = movedTetromino
-        } else {
-            tetromino.forEach { block in
-                if isPositionValid(x: block.x, y: block.y) {
-                    gameBoard[block.y][block.x] = block
-                }
-            }
-            spawnTetromino()
-        }
-    }
-    
-    private func spawnTetromino() {
-        guard gameState == .playing else { return }
-        if let next = nextTetromino {
-            self.currentTetromino = next
-            self.nextTetromino = nil
-        } else {
-            let potentialTetromino = TetrominoFactory.generate()
-            let canSpawn = potentialTetromino.allSatisfy { block in
-                isPositionValid(x: block.x, y: block.y, shouldConsiderSpawnArea: true) &&
-                (block.y < 0 || gameBoard[block.y][block.x] == nil)
-            }
-            if canSpawn {
-                self.currentTetromino = potentialTetromino
-            } else {
-                self.gameState = .gameOver
-                return
-            }
-        }
-        let newNextTetromino = TetrominoFactory.generate()
-        let canPlaceNext = newNextTetromino.allSatisfy { block in
-            isPositionValid(x: block.x, y: block.y, shouldConsiderSpawnArea: true)
-        }
-        if canPlaceNext {
-            self.nextTetromino = newNextTetromino
-        } else {
-            fatalError("Error: Next tetromino cannot be placed. Check game logic.")
-        }
-    }
-    
-    private func startGameTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: currentDropSpeed, repeats: true) { [weak self] _ in
-            self?.dropAndUpdateTetrominoPosition()
-        }
-    }
-    
-    private func stopGameTimer() {
-        timer?.invalidate()
-    }
-    
-    func startGame() {
-        gameState = .playing
-        spawnTetromino()
-        startGameTimer()
-    }
-    
-    func handlePlayerAction(action: PlayerAction) {
-        switch action {
-            case .moveLeft:
-                moveTetrominoLeft()
-            case .moveRight:
-                moveTetrominoRight()
-            case .rotate:
-                rotateTetromino()
-            case .drop:
-                dropAndUpdateTetrominoPosition()
-            case .hold:
-                holdTetromino()
-        }
-    }
-    
-    func togglePauseResumeGame() {
-        if gameState == .paused {
-            gameState = .playing
-            startGameTimer()
-        } else if gameState == .playing {
-            gameState = .paused
-            stopGameTimer()
-        }
-    }
-    
-    private func moveTetrominoLeft() {
-        // Placeholder for left movement logic
-    }
-    
-    private func moveTetrominoRight() {
-        // Placeholder for right movement logic
-    }
-    
-    private func rotateTetromino() {
-        // Placeholder for rotation logic
-    }
-    
-    private func holdTetromino() {
-        // Swap currentTetromino with heldTetromino
+    private func updateGameAfterRotation() {
+        // Update any game state necessary after a successful rotation.
+        // This could include checking for line clears or updating the display.
     }
 }
 
-/*
-
- import SwiftUI
-struct Block: Identifiable {
-    let id = UUID()
-    var x: Int
-    var y: Int
-    var color: Color
-}
-enum PlayerAction {
-    case moveLeft
-    case moveRight
-    case rotate
-    case drop
-    case hold
-}
-enum GameState: String {
-    case playing
-    case paused
-    case gameOver
-}
-
-class GameManager: ObservableObject {
-    @Published var gameBoard: [[Block?]]
-    @Published var currentTetromino: [Block]?
-    @Published var heldTetromino: [Block]?
-    @Published var nextTetromino: [Block]?
-    @Published var gameState: GameState = .gameOver
-    @Published var score: Int = 0
-    
-    private var timer: Timer?
-    private let normalDropSpeed: TimeInterval = 0.5
-    private let fastDropSpeed: TimeInterval = 0.05
-    private var currentDropSpeed: TimeInterval
-    
-    let rows: Int = 20
-    let columns: Int = 10
-}
-use these data models to create a game manager class for a Tetris game. Implement logic to handle spawning and dropping down a piece. Add the ability to pause and resume the game. Use player action for soft drop, moving left right and holding a piece.
-
-*/

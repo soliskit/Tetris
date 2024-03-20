@@ -14,31 +14,46 @@ struct GameBoardView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let blockSize = min(geometry.size.width / CGFloat(columns), geometry.size.height / CGFloat(rows))
-            let boardWidth = blockSize * CGFloat(columns)
-            let boardHeight = blockSize * CGFloat(rows)
-            
+            let blockSize = calculateBlockSize(from: geometry.size)
+            let boardDimensions = calculateBoardDimensions(blockSize: blockSize)
             ZStack {
-                Rectangle()
-                    .foregroundColor(.white.opacity(0.8))
-                    .frame(width: boardWidth, height: boardHeight)
-                    .border(Color.black, width: 3)
-                
-                drawGridLines(boardWidth: boardWidth, boardHeight: boardHeight, blockSize: blockSize)
-                
-                ForEach(gameManager.getAllBlocks(), id: \.id) { block in
-                    Rectangle()
-                        .foregroundColor(block.color)
-                        .frame(width: blockSize, height: blockSize)
-                        .position(x: blockSize * CGFloat(block.x) + blockSize / 2,
-                                  y: blockSize * CGFloat(block.y) + blockSize / 2)
-                }
+                BoardBackgroundView(boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
+                GridLinesView(columns: columns, rows: rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
+                TetrominosView(gameManager: gameManager, blockSize: blockSize)
             }
-            .frame(width: boardWidth, height: boardHeight)
+            .frame(width: boardDimensions.width, height: boardDimensions.height)
         }
     }
     
-    private func drawGridLines(boardWidth: CGFloat, boardHeight: CGFloat, blockSize: CGFloat) -> some View {
+    private func calculateBlockSize(from size: CGSize) -> CGFloat {
+        min(size.width / CGFloat(columns), size.height / CGFloat(rows))
+    }
+    
+    private func calculateBoardDimensions(blockSize: CGFloat) -> CGSize {
+        CGSize(width: blockSize * CGFloat(columns), height: blockSize * CGFloat(rows))
+    }
+}
+
+struct BoardBackgroundView: View {
+    let boardWidth: CGFloat
+    let boardHeight: CGFloat
+    
+    var body: some View {
+        Rectangle()
+            .foregroundColor(.white.opacity(0.8))
+            .frame(width: boardWidth, height: boardHeight)
+            .border(Color.black, width: 3)
+    }
+}
+
+struct GridLinesView: View {
+    let columns: Int
+    let rows: Int
+    let blockSize: CGFloat
+    let boardWidth: CGFloat
+    let boardHeight: CGFloat
+    
+    var body: some View {
         Path { path in
             for column in 1..<columns {
                 let x = blockSize * CGFloat(column)
@@ -55,6 +70,34 @@ struct GameBoardView: View {
     }
 }
 
-#Preview("Game Board") {
-    GameBoardView(gameManager: GameManager())
+struct TetrominosView: View {
+    @ObservedObject var gameManager: GameManager
+    let blockSize: CGFloat
+    
+    var body: some View {
+        ForEach(gameManager.gameBoard.flatMap { $0 }.compactMap { $0 }, id: \.id) { tetromino in
+            TetrominoView(tetromino: tetromino, blockSize: blockSize)
+        }
+    }
+}
+
+struct TetrominoView: View {
+    let tetromino: Tetromino
+    let blockSize: CGFloat
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ForEach(0..<tetromino.shape.count, id: \.self) { rowIdx in
+                ForEach(0..<tetromino.shape[rowIdx].count, id: \.self) { colIdx in
+                    if tetromino.shape[rowIdx][colIdx] {
+                        Rectangle()
+                            .foregroundColor(tetromino.color)
+                            .frame(width: blockSize, height: blockSize)
+                            .offset(x: blockSize * CGFloat(colIdx) + (tetromino.column * blockSize),
+                                    y: blockSize * CGFloat(rowIdx) + (tetromino.row * blockSize))
+                    }
+                }
+            }
+        }
+    }
 }
