@@ -64,10 +64,12 @@ class GameManager: ObservableObject {
             updateGameState()
         } else {
             currentPiece.row -= 1
-            updateGameState(forced: true)
-            if isSoftDropping {
-                startGameTimer()
-            }
+            lockPiecePosition()
+            checkCompletedLines()
+            spawnNewPiece()
+        }
+        if isSoftDropping {
+            startGameTimer(withSoftDrop: true)
         }
     }
     
