@@ -29,16 +29,17 @@ struct ContentView: View {
                 .padding()
                 .background(.black.opacity(0.5))
                 .cornerRadius(10)
-            Button(gameManager.state == .playing ? "Pause" : "Start") {
-                if gameManager.state == .playing {
-                    gameManager.handleAction(.pause)
-                } else {
-                    gameManager.handleAction(.resume)
-                }
-            }
             if gameManager.state == .gameOver {
                 Button("Start Game") {
                     gameManager.startGame()
+                }
+            } else {
+                Button(gameManager.state == .playing ? "Pause" : "Start") {
+                    if gameManager.state == .playing {
+                        gameManager.handleAction(.pause)
+                    } else {
+                        gameManager.handleAction(.resume)
+                    }
                 }
             }
         }
