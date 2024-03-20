@@ -8,12 +8,15 @@
 import SwiftUI
 
 class GameManager: ObservableObject {
+    private let rows: Int = 20
+    private let columns: Int = 10
     private let normalDropSpeed: TimeInterval = 1.0
     private let softDropSpeed: TimeInterval = 0.1
     @Published var currentPiece: Tetromino
     @Published var heldPiece: Tetromino?
     @Published var nextPiece: Tetromino
-    @Published var gameBoard: [[Tetromino?]]
+    @Published var tetrominos: [Tetromino] = []
+    @Published var gameBoard: [[Bool]]
     @Published var gameTimer: Timer?
     @Published var state: GameState = .gameOver
     @Published var gameScore: Int = 0
@@ -22,12 +25,12 @@ class GameManager: ObservableObject {
     init() {
         currentPiece = TetrominoFactory.generate()
         nextPiece = TetrominoFactory.generate()
-        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
+        gameBoard = Array(repeating: Array(repeating: false, count: 10), count: 20)
     }
     
     func startGame() {
-        spawnNewPiece()
-        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
+        spawnNewTetromino()
+        gameBoard = Array(repeating: Array(repeating: false, count: 10), count: 20)
         state = .playing
         gameScore = 0
         gameLevel = 1
@@ -47,74 +50,89 @@ class GameManager: ObservableObject {
         }
     }
     
-    private func spawnNewPiece() {
-        currentPiece = nextPiece
-        nextPiece = TetrominoFactory.generate()
-        currentPiece.row = 0
-        currentPiece.column = CGFloat(gameBoard[0].count / 2) - CGFloat(currentPiece.shape[0].count / 2)
-        if !isPiecePositionValid(currentPiece) {
+    private func spawnNewTetromino() {
+        var newPiece = TetrominoFactory.generate()
+        newPiece.row = 0
+        newPiece.column = CGFloat(columns / 2) - CGFloat(newPiece.shape[0].count / 2)
+        
+        if isPiecePositionValid(newPiece) {
+            tetrominos.append(newPiece)
+            currentPiece = newPiece
+            updateGameBoard()
+        } else {
             gameOver()
         }
     }
-    
     func movePieceDown(isSoftDropping: Bool = false) {
         guard state == .playing else { return }
-        currentPiece.row += 1
-        if isPiecePositionValid(currentPiece) {
-            updateGameState()
+        var movedPiece = currentPiece
+        movedPiece.row += 1
+        if isPiecePositionValid(movedPiece) {
+            currentPiece = movedPiece
+            updateGameBoard()
         } else {
-            currentPiece.row -= 1
             lockPiecePosition()
-            checkCompletedLines()
-            spawnNewPiece()
+            checkAndClearLines()
+            spawnNewTetromino()
         }
         if isSoftDropping {
             startGameTimer(withSoftDrop: true)
+        } else {
+            startGameTimer()
         }
     }
     
     private func lockPiecePosition() {
         guard state == .playing else { return }
-        currentPiece.shape.enumerated().forEach { (y, row) in
-            row.enumerated().forEach { (x, cell) in
+        currentPiece.shape.enumerated().forEach { y, row in
+            row.enumerated().forEach { x, cell in
                 guard cell else { return }
-                let boardRow = Int(currentPiece.row) + y
-                let boardColumn = Int(currentPiece.column) + x
-                if boardRow >= 0, boardRow < gameBoard.count, boardColumn >= 0, boardColumn < gameBoard[boardRow].count {
-                    gameBoard[boardRow][boardColumn] = currentPiece
+                let globalRow = Int(currentPiece.row) + y
+                let globalCol = Int(currentPiece.column) + x
+                if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
+                    gameBoard[globalRow][globalCol] = true
                 }
             }
         }
+        tetrominos.removeAll { $0.id == currentPiece.id }
+        checkAndClearLines()
     }
     
-    private func checkCompletedLines() {
-        let linesToRemove = gameBoard.enumerated().compactMap { $0.element.allSatisfy { $0 != nil } ? $0.offset : nil }
-        linesToRemove.reversed().forEach { rowIndex in
-            gameBoard.remove(at: rowIndex)
-            gameBoard.insert(Array(repeating: nil, count: 10), at: 0)
+    private func checkAndClearLines() {
+        let linesToClear = gameBoard.enumerated().filter { $0.element.allSatisfy { $0 } }.map { $0.offset }
+        linesToClear.reversed().forEach { line in
+            gameBoard.remove(at: line)
+            gameBoard.insert(Array(repeating: false, count: columns), at: 0)
         }
-        if linesToRemove.count > 0 {
-            gameScore += calculateScore(forLines: linesToRemove.count)
+        tetrominos = tetrominos.map { tetromino in
+            var newTetromino = tetromino
+            let linesBelow = linesToClear.filter { $0 < Int(tetromino.row) }.count
+            if linesBelow > 0 {
+                newTetromino.row += CGFloat(linesBelow)
+            }
+            return newTetromino
+        }
+        if !linesToClear.isEmpty {
+            updateGameBoard()
+            gameScore += calculateScore(forLines: linesToClear.count)
             gameLevel = (gameScore / 1000) + 1
         }
     }
     
-    private func updateGameState(forced: Bool = false) {
-        if forced || isPiecePositionValid(currentPiece) {
-            if state != .gameOver {
-                lockPiecePosition()
-                checkCompletedLines()
+    private func updateGameBoard() {
+        gameBoard = Array(repeating: Array(repeating: false, count: columns), count: rows)
+        tetrominos.forEach { tetromino in
+            tetromino.shape.enumerated().forEach { rowIndex, row in
+                row.enumerated().forEach { colIndex, isOccupied in
+                    guard isOccupied else { return }
+                    let globalRow = Int(tetromino.row) + rowIndex
+                    let globalCol = Int(tetromino.column) + colIndex
+                    if globalRow < rows && globalCol < columns && globalRow >= 0 && globalCol >= 0 {
+                        gameBoard[globalRow][globalCol] = true
+                    }
+                }
             }
-            if forced {
-                spawnNewPiece()
-            }
-            if state != .gameOver {
-                updateGameSpeed()
-            }
-        } else {
-            fatalError("Invalid move or rotation that aren't forced")
         }
-        objectWillChange.send()
     }
     
     func handleAction(_ action: PlayerAction) {
@@ -150,21 +168,21 @@ class GameManager: ObservableObject {
     
     private func movePieceLeft() {
         guard state == .playing else { return }
-        currentPiece.column -= 1
-        if isPiecePositionValid(currentPiece) {
-            updateGameState()
-        } else {
-            currentPiece.column += 1
+        var movedPiece = currentPiece
+        movedPiece.column -= 1
+        if isPiecePositionValid(movedPiece) {
+            currentPiece = movedPiece
+            updateGameBoard()
         }
     }
     
     private func movePieceRight() {
         guard state == .playing else { return }
-        currentPiece.column += 1
-        if isPiecePositionValid(currentPiece) {
-            updateGameState()
-        } else {
-            currentPiece.column -= 1
+        var movedPiece = currentPiece
+        movedPiece.column += 1
+        if isPiecePositionValid(movedPiece) {
+            currentPiece = movedPiece
+            updateGameBoard()
         }
     }
     
@@ -185,12 +203,12 @@ class GameManager: ObservableObject {
     
     func rotateCurrentPiece(clockwise: Bool = true) {
         guard state == .playing else { return }
-        let originalState = currentPiece.rotationState
-        currentPiece.rotate(clockwise: clockwise)
-        if isPiecePositionValid(currentPiece) {
-            updateGameState()
-        } else {
-            currentPiece.rotationState = originalState
+        var rotatedPiece = currentPiece
+        rotatedPiece.rotate(clockwise: clockwise)
+        if isPiecePositionValid(rotatedPiece) {
+            currentPiece = rotatedPiece
+            updateGameBoard()
+            checkAndClearLines()
         }
     }
     
@@ -202,14 +220,26 @@ class GameManager: ObservableObject {
     }
     
     private func isPiecePositionValid(_ piece: Tetromino) -> Bool {
-        return !piece.shape.enumerated().contains { y, row in
+        !piece.shape.enumerated().contains { y, row in
             row.enumerated().contains { x, cell in
-                if cell {
-                    let boardRow = Int(piece.row) + y
-                    let boardColumn = Int(piece.column) + x
-                    return boardRow < 0 || boardRow >= gameBoard.count || boardColumn < 0 || boardColumn >= gameBoard[0].count || gameBoard[boardRow][boardColumn] != nil
-                }
-                return false
+                cell && {
+                    let globalRow = Int(piece.row) + y
+                    let globalCol = Int(piece.column) + x
+                    
+                    if globalRow < 0 || globalRow >= rows || globalCol < 0 || globalCol >= columns {
+                        return true
+                    }
+                    if tetrominos.contains(where: { otherPiece in
+                        otherPiece.id != piece.id && otherPiece.shape.enumerated().contains { otherY, otherRow in
+                            otherRow.enumerated().contains { otherX, otherCell in
+                                otherCell && (Int(otherPiece.row) + otherY, Int(otherPiece.column) + otherX) == (globalRow, globalCol)
+                            }
+                        }
+                    }) {
+                        return true
+                    }
+                    return gameBoard[globalRow][globalCol]
+                }()
             }
         }
     }

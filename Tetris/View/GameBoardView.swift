@@ -19,7 +19,7 @@ struct GameBoardView: View {
             ZStack {
                 BoardBackgroundView(boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
                 GridLinesView(columns: columns, rows: rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
-                TetrominosView(gameManager: gameManager, blockSize: blockSize)
+                TetrominosView(tetrominos: gameManager.tetrominos, blockSize: blockSize)
             }
             .frame(width: boardDimensions.width, height: boardDimensions.height)
         }
@@ -71,11 +71,11 @@ struct GridLinesView: View {
 }
 
 struct TetrominosView: View {
-    @ObservedObject var gameManager: GameManager
+    let tetrominos: [Tetromino]
     let blockSize: CGFloat
     
     var body: some View {
-        ForEach(gameManager.gameBoard.flatMap { $0 }.compactMap { $0 }, id: \.id) { tetromino in
+        ForEach(tetrominos) { tetromino in
             TetrominoView(tetromino: tetromino, blockSize: blockSize)
         }
     }
@@ -86,7 +86,7 @@ struct TetrominoView: View {
     let blockSize: CGFloat
     
     var body: some View {
-        GeometryReader { geometry in
+        GeometryReader { _ in
             ForEach(0..<tetromino.shape.count, id: \.self) { rowIdx in
                 ForEach(0..<tetromino.shape[rowIdx].count, id: \.self) { colIdx in
                     if tetromino.shape[rowIdx][colIdx] {
