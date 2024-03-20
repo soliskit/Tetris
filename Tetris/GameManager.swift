@@ -63,6 +63,7 @@ class GameManager: ObservableObject {
             gameOver()
         }
     }
+    
     func movePieceDown(isSoftDropping: Bool = false) {
         guard state == .playing else { return }
         var movedPiece = currentPiece
@@ -72,7 +73,7 @@ class GameManager: ObservableObject {
             updateGameBoard()
         } else {
             lockPiecePosition()
-            checkAndClearLines()
+            removeCompletedLines()
             spawnNewTetromino()
         }
         if isSoftDropping {
@@ -95,10 +96,10 @@ class GameManager: ObservableObject {
             }
         }
         tetrominos.removeAll { $0.id == currentPiece.id }
-        checkAndClearLines()
+        removeCompletedLines()
     }
     
-    private func checkAndClearLines() {
+    private func removeCompletedLines() {
         let linesToClear = gameBoard.enumerated().filter { $0.element.allSatisfy { $0 } }.map { $0.offset }
         linesToClear.reversed().forEach { line in
             gameBoard.remove(at: line)
@@ -144,9 +145,9 @@ class GameManager: ObservableObject {
             case .hold:
                 holdPiece()
             case .rotate:
-                rotateCurrentPiece()
+                rotatePiece()
             case .drop:
-                toggleSoftDrop()
+                dropPiece()
             case .pause:
                 pauseGame()
             case .resume:
@@ -192,7 +193,7 @@ class GameManager: ObservableObject {
         currentPiece = swapPiece
     }
     
-    private func toggleSoftDrop() {
+    private func dropPiece() {
         guard state == .playing else { return }
         if gameTimer?.timeInterval != softDropSpeed {
             startGameTimer(withSoftDrop: true)
@@ -201,14 +202,14 @@ class GameManager: ObservableObject {
         }
     }
     
-    func rotateCurrentPiece(clockwise: Bool = true) {
+    func rotatePiece(clockwise: Bool = true) {
         guard state == .playing else { return }
         var rotatedPiece = currentPiece
         rotatedPiece.rotate(clockwise: clockwise)
         if isPiecePositionValid(rotatedPiece) {
             currentPiece = rotatedPiece
             updateGameBoard()
-            checkAndClearLines()
+            removeCompletedLines()
         }
     }
     
