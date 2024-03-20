@@ -20,7 +20,8 @@ class GameManager: ObservableObject {
     @Published var gameLevel: Int = 1
     
     init() {
-        spawnNewPiece()
+        currentPiece = TetrominoFactory.generate()
+        nextPiece = TetrominoFactory.generate()
         gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
     
@@ -49,15 +50,21 @@ class GameManager: ObservableObject {
     private func spawnNewPiece() {
         currentPiece = nextPiece
         nextPiece = TetrominoFactory.generate()
+        currentPiece.row = 0
+        currentPiece.column = CGFloat(gameBoard[0].count / 2) - CGFloat(currentPiece.shape[0].count / 2)
+        if !isPiecePositionValid(currentPiece) {
+            gameOver()
+        }
     }
     
-    private func movePieceDown(isSoftDropping: Bool = false) {
+    func movePieceDown(isSoftDropping: Bool = false) {
         guard state == .playing else { return }
         currentPiece.row += 1
-        if !isPiecePositionValid(currentPiece) {
+        if isPiecePositionValid(currentPiece) {
+            updateGameState()
+        } else {
             currentPiece.row -= 1
-            lockPiecePosition()
-            spawnNewPiece()
+            updateGameState(forced: true)
             if isSoftDropping {
                 startGameTimer()
             }
@@ -65,19 +72,16 @@ class GameManager: ObservableObject {
     }
     
     private func lockPiecePosition() {
-        if isPiecePositionValid(currentPiece) {
-            let shape = currentPiece.shape
-            shape.enumerated().forEach { y, row in
-                row.enumerated().forEach { x, isFilled in
-                    guard isFilled else { return }
-                    let boardRow = Int(currentPiece.row) + y
-                    let boardColumn = Int(currentPiece.column) + x
-                    if boardRow < gameBoard.count && boardColumn < gameBoard[0].count {
-                        gameBoard[boardRow][boardColumn] = currentPiece
-                    }
+        guard state == .playing else { return }
+        currentPiece.shape.enumerated().forEach { (y, row) in
+            row.enumerated().forEach { (x, cell) in
+                guard cell else { return }
+                let boardRow = Int(currentPiece.row) + y
+                let boardColumn = Int(currentPiece.column) + x
+                if boardRow >= 0, boardRow < gameBoard.count, boardColumn >= 0, boardColumn < gameBoard[boardRow].count {
+                    gameBoard[boardRow][boardColumn] = currentPiece
                 }
             }
-            checkCompletedLines()
         }
     }
     
@@ -89,12 +93,21 @@ class GameManager: ObservableObject {
         }
         if linesToRemove.count > 0 {
             gameScore += calculateScore(forLines: linesToRemove.count)
+            gameLevel = (gameScore / 1000) + 1
         }
     }
     
-    private func updateGameAfterRotation() {
-        // Update any game state necessary after a successful rotation.
-        // This could include checking for line clears or updating the display.
+    private func updateGameState(forced: Bool = false) {
+        if forced || isPiecePositionValid(currentPiece) {
+            lockPiecePosition()
+            checkCompletedLines()
+            spawnNewPiece()
+            updateGameSpeed()
+        } else {
+            // Handle invalid move or rotation, possibly revert the move or check for game over
+        }
+        // Notify UI to refresh due to state changes
+        objectWillChange.send()
     }
     
     func handleAction(_ action: PlayerAction) {
@@ -131,18 +144,20 @@ class GameManager: ObservableObject {
     private func movePieceLeft() {
         guard state == .playing else { return }
         currentPiece.column -= 1
-        guard isPiecePositionValid(currentPiece) else {
+        if isPiecePositionValid(currentPiece) {
+            updateGameState()
+        } else {
             currentPiece.column += 1
-            return
         }
     }
     
     private func movePieceRight() {
         guard state == .playing else { return }
         currentPiece.column += 1
-        guard isPiecePositionValid(currentPiece) else {
+        if isPiecePositionValid(currentPiece) {
+            updateGameState()
+        } else {
             currentPiece.column -= 1
-            return
         }
     }
     
@@ -163,17 +178,12 @@ class GameManager: ObservableObject {
     
     func rotateCurrentPiece(clockwise: Bool = true) {
         guard state == .playing else { return }
+        let originalState = currentPiece.rotationState
         currentPiece.rotate(clockwise: clockwise)
-        
         if isPiecePositionValid(currentPiece) {
-            updateGameAfterRotation()
+            updateGameState()
         } else {
-            if !applyWallKick(clockwise: clockwise) {
-                // If wall kick fails, revert the rotation
-                currentPiece.rotate(clockwise: !clockwise)
-            } else {
-                updateGameAfterRotation()
-            }
+            currentPiece.rotationState = originalState
         }
     }
     
@@ -194,6 +204,13 @@ class GameManager: ObservableObject {
                 }
                 return false
             }
+        }
+    }
+    
+    private func updateGameSpeed() {
+        let interval = normalDropSpeed / Double(gameLevel)
+        if gameTimer?.timeInterval != interval {
+            startGameTimer()
         }
     }
     
