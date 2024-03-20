@@ -20,14 +20,12 @@ class GameManager: ObservableObject {
     @Published var gameLevel: Int = 1
     
     init() {
-        currentPiece = TetrominoFactory.generate()
-        nextPiece = TetrominoFactory.generate()
+        spawnNewPiece()
         gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
     
     func startGame() {
-        currentPiece = TetrominoFactory.generate()
-        nextPiece = TetrominoFactory.generate()
+        spawnNewPiece()
         gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
         state = .playing
         gameScore = 0
@@ -67,7 +65,36 @@ class GameManager: ObservableObject {
     }
     
     private func lockPiecePosition() {
-        // Logic to lock the Tetromino on the game board and check for completed lines
+        if isPiecePositionValid(currentPiece) {
+            let shape = currentPiece.shape
+            shape.enumerated().forEach { y, row in
+                row.enumerated().forEach { x, isFilled in
+                    guard isFilled else { return }
+                    let boardRow = Int(currentPiece.row) + y
+                    let boardColumn = Int(currentPiece.column) + x
+                    if boardRow < gameBoard.count && boardColumn < gameBoard[0].count {
+                        gameBoard[boardRow][boardColumn] = currentPiece
+                    }
+                }
+            }
+            checkCompletedLines()
+        }
+    }
+    
+    private func checkCompletedLines() {
+        let linesToRemove = gameBoard.enumerated().compactMap { $0.element.allSatisfy { $0 != nil } ? $0.offset : nil }
+        linesToRemove.reversed().forEach { rowIndex in
+            gameBoard.remove(at: rowIndex)
+            gameBoard.insert(Array(repeating: nil, count: 10), at: 0)
+        }
+        if linesToRemove.count > 0 {
+            gameScore += calculateScore(forLines: linesToRemove.count)
+        }
+    }
+    
+    private func updateGameAfterRotation() {
+        // Update any game state necessary after a successful rotation.
+        // This could include checking for line clears or updating the display.
     }
     
     func handleAction(_ action: PlayerAction) {
@@ -158,27 +185,21 @@ class GameManager: ObservableObject {
     }
     
     private func isPiecePositionValid(_ piece: Tetromino) -> Bool {
-        for y in 0..<piece.shape.count {
-            for x in 0..<piece.shape[y].count {
-                if piece.shape[y][x] {
+        return !piece.shape.enumerated().contains { y, row in
+            row.enumerated().contains { x, cell in
+                if cell {
                     let boardRow = Int(piece.row) + y
                     let boardColumn = Int(piece.column) + x
-                    if boardRow < 0 || boardRow >= gameBoard.count || boardColumn < 0 || boardColumn >= gameBoard[0].count {
-                        return false
-                    }
-                    
-                    if gameBoard[boardRow][boardColumn] != nil {
-                        return false
-                    }
+                    return boardRow < 0 || boardRow >= gameBoard.count || boardColumn < 0 || boardColumn >= gameBoard[0].count || gameBoard[boardRow][boardColumn] != nil
                 }
+                return false
             }
         }
-        return true
     }
     
-    private func updateGameAfterRotation() {
-        // Update any game state necessary after a successful rotation.
-        // This could include checking for line clears or updating the display.
+    private func calculateScore(forLines lines: Int) -> Int {
+        let scores = [1: 100, 2: 300, 3: 500, 4: 800]
+        return scores[lines] ?? 0
     }
 }
 
