@@ -78,14 +78,31 @@ class GameManager: ObservableObject {
     }
     
     private func spawnTetromino() {
-        let potentialTetromino = TetrominoFactory.generate()
-        let canSpawn = potentialTetromino.allSatisfy { block in
+        guard gameState == .playing else { return }
+        if let next = nextTetromino {
+            self.currentTetromino = next
+            self.nextTetromino = nil
+        } else {
+            let potentialTetromino = TetrominoFactory.generate()
+            let canSpawn = potentialTetromino.allSatisfy { block in
+                isPositionValid(x: block.x, y: block.y, shouldConsiderSpawnArea: true) &&
+                (block.y < 0 || gameBoard[block.y][block.x] == nil)
+            }
+            if canSpawn {
+                self.currentTetromino = potentialTetromino
+            } else {
+                self.gameState = .gameOver
+                return
+            }
+        }
+        let newNextTetromino = TetrominoFactory.generate()
+        let canPlaceNext = newNextTetromino.allSatisfy { block in
             isPositionValid(x: block.x, y: block.y, shouldConsiderSpawnArea: true)
         }
-        if canSpawn {
-            self.currentTetromino = potentialTetromino
+        if canPlaceNext {
+            self.nextTetromino = newNextTetromino
         } else {
-            self.gameState = .gameOver
+            fatalError("Error: Next tetromino cannot be placed. Check game logic.")
         }
     }
     
