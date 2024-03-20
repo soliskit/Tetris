@@ -27,71 +27,47 @@ struct Tetromino: Identifiable {
     /// Wall kick data to adjust the position of the Tetromino when it rotates next to a wall or another Tetromino.
     var wallKickData: [[CGPoint]]
     
-    /// Rotates the Tetromino clockwise or counterclockwise, checking for collisions and applying wall kicks if necessary.
-    /// - Parameter isClockwise: A Boolean value indicating the direction of the rotation (true for clockwise).
-    mutating func rotate(clockwise isClockwise: Bool) {
+    /// Rotates the Tetromino clockwise, checking for collisions and applying wall kicks if necessary.
+    mutating func rotate() {
         let previousState = rotationState
-        let directionAdjustment = isClockwise ? 1 : -1
-        rotationState = (rotationState + directionAdjustment + 4) % 4
-        let newShape = rotatedShape(clockwise: isClockwise)
+        let nextState = (rotationState + 1) % 4
+        let newShape = rotatedShape()
+        rotationState = nextState
         if checksCollision(for: newShape, atRow: row, andColumn: column) {
-            rotationState = previousState
-            return
-        }
-        shape = newShape
-        if !applyWallKick(from: previousState) {
-            rotationState = previousState
-            shape = rotatedShape(clockwise: !(isClockwise))
+            if !applyWallKick(from: previousState, to: nextState) {
+                rotationState = previousState
+            } else {
+                shape = newShape
+            }
+        } else {
+            shape = newShape
         }
     }
     
     /// Calculates the new shape of the Tetromino after a rotation operation.
-    /// - Parameter isClockwise: A Boolean value indicating the direction of the rotation.
     /// - Returns: A 2D array representing the new shape of the Tetromino.
-    private func rotatedShape(clockwise isClockwise: Bool) -> [[Bool]] {
+    private func rotatedShape() -> [[Bool]] {
         let size = shape.count
-        var newShape = Array(repeating: Array(repeating: false, count: size), count: size)
-        newShape = (0..<size).map { row in
+        return (0..<size).map { row in
             (0..<size).map { col in
-                isClockwise ? shape[col][size - row - 1] : shape[size - col - 1][row]
+                shape[col][size - row - 1]
             }
         }
-        return newShape
     }
     
-    /// Checks if the Tetromino can rotate without colliding with the game board boundaries or other Tetrominos.
-    /// - Parameter isClockwise: A Boolean value indicating the direction of the rotation.
-    /// - Returns: A Boolean value indicating whether the rotation can be performed.
-    private func canRotate(clockwise isClockwise: Bool) -> Bool {
-        let directionAdjustment = isClockwise ? 1 : -1
-        let potentialRotationState = (rotationState + directionAdjustment + 4) % 4
-        let potentialShape = rotatedShape(clockwise: isClockwise)
-        if checksCollision(for: potentialShape, atRow: row, andColumn: column) {
+    mutating func applyWallKick(from previousState: Int, to nextState: Int) -> Bool {
+        let kickIndex = previousState * 4 + nextState
+        guard wallKickData.indices.contains(kickIndex) else { return false }
+        return wallKickData[kickIndex].contains { kickPosition in
+            let testRow = row + kickPosition.y
+            let testColumn = column + kickPosition.x
+            if !checksCollision(for: shape, atRow: testRow, andColumn: testColumn) {
+                row += kickPosition.y
+                column += kickPosition.x
+                return true
+            }
             return false
         }
-        let result = wallKickData[rotationState].enumerated().contains { index, offset in
-            let potentialRow = row + (isClockwise ? offset.y : -offset.y)
-            let potentialColumn = column + (isClockwise ? offset.x : -offset.x)
-            let correspondingWallKick = wallKickData[potentialRotationState][index]
-            let testRow = potentialRow + (isClockwise ? correspondingWallKick.y : -correspondingWallKick.y)
-            let testColumn = potentialColumn + (isClockwise ? correspondingWallKick.x : -correspondingWallKick.x)
-            return !checksCollision(for: potentialShape, atRow: testRow, andColumn: testColumn)
-        }
-        return result
-    }
-    
-    /// Applies a wall kick to adjust the position of the Tetromino if it collides after a rotation.
-    /// - Parameter previousState: The rotation state of the Tetromino before the attempted rotation.
-    /// - Returns: A Boolean value indicating whether a wall kick was successfully applied.
-    private mutating func applyWallKick(from previousState: Int) -> Bool {
-        guard let testPositions = wallKickData[safe: previousState * 4 + rotationState] else { return false }
-        return testPositions.first(where: { testPosition in
-            !checksCollision(for: shape, atRow: row + testPosition.y, andColumn: column + testPosition.x)
-        }).map { testPosition in
-            row += testPosition.y
-            column += testPosition.x
-            return true
-        } != nil
     }
     
     /// Checks if the Tetromino collides with the game board boundaries or other Tetrominos after a move or rotation.

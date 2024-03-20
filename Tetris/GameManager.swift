@@ -202,12 +202,12 @@ class GameManager: ObservableObject {
         }
     }
     
-    func rotatePiece(clockwise: Bool = true) {
+    func rotatePiece() {
         guard state == .playing else { return }
-        var rotatedPiece = currentPiece
-        rotatedPiece.rotate(clockwise: clockwise)
-        if isPiecePositionValid(rotatedPiece) {
-            currentPiece = rotatedPiece
+        var piece = currentPiece
+        piece.rotate()
+        if isPiecePositionValid(piece) {
+            currentPiece = piece
             updateGameBoard()
             removeCompletedLines()
         }
