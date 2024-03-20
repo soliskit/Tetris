@@ -33,11 +33,11 @@ struct ContentView: View {
                         if gameManager.gameState == .gameOver {
                             Button("Start New Game", action: gameManager.startGame)
                         } else {
-//                            if gameManager.gameState == .playing {
-//                                Button("Pause", action: gameManager)
-//                            } else {
-//                                Button("Resume", action: gameManager.pauseOrResumeGame)
-//                            }
+                            if gameManager.gameState == .playing {
+                                Button("Pause", action: gameManager.togglePauseResumeGame)
+                            } else {
+                                Button("Resume", action: gameManager.togglePauseResumeGame)
+                            }
                         }
         }
         .onAppear {
