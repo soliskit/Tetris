@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct TetrominoPreview: View {
-    private let columns: Int = 4
-    private let rows: Int = 4
-    var tetromino: [Block]?
+    private let columns: Int = 6
+    private let rows: Int = 6
+    var tetromino: Tetromino?
     
     var body: some View {
         GeometryReader { geometry in
@@ -22,41 +22,27 @@ struct TetrominoPreview: View {
                 Rectangle()
                     .foregroundColor(.white.opacity(0.5))
                     .frame(width: boardWidth, height: boardHeight)
-                    .border(Color.black, width: 2)
+                    .border(.black, width: 2)
                 
-                ForEach(tetromino ?? []) { block in
-                    let xOffset = (CGFloat(columns) / 2.0) - CGFloat(tetrominoWidth()) / 2.0
-                    let yOffset = (CGFloat(rows) / 2.0) - CGFloat(tetrominoHeight()) / 2.0
+                if let shape = tetromino?.shape, let color = tetromino?.color {
+                    let xOffset = (boardWidth - CGFloat(shape[0].count) * blockSize) / 2
+                    let yOffset = (boardHeight - CGFloat(shape.count) * blockSize) / 2
                     
-                    Rectangle()
-                        .foregroundColor(block.color)
-                        .frame(width: blockSize, height: blockSize)
-                        .position(x: blockSize * CGFloat(block.x - minX() + 1) + (blockSize * xOffset) - blockSize / 2,
-                                  y: blockSize * CGFloat(block.y - minY() + 1) + (blockSize * yOffset) - blockSize / 2)
+                    ForEach(0..<shape.count, id: \.self) { row in
+                        ForEach(0..<shape[row].count, id: \.self) { column in
+                            if shape[row][column] {
+                                Rectangle()
+                                    .foregroundColor(color)
+                                    .frame(width: blockSize, height: blockSize)
+                                    .offset(x: blockSize * CGFloat(column) + xOffset - boardWidth / 2 + blockSize / 2,
+                                            y: blockSize * CGFloat(row) + yOffset - boardHeight / 2 + blockSize / 2)
+                            }
+                        }
+                    }
                 }
             }
         }
-        .frame(width: 100, height: 100) // Adjust this to change the size of the preview area
-    }
-    
-    private func minX() -> Int {
-        tetromino?.map { $0.x }.min() ?? 0
-    }
-    
-    private func minY() -> Int {
-        tetromino?.map { $0.y }.min() ?? 0
-    }
-    
-    private func tetrominoWidth() -> Int {
-        guard let blocks = tetromino else { return 0 }
-        let xs = blocks.map { $0.x }
-        return (xs.max() ?? 0) - (xs.min() ?? 0) + 1
-    }
-    
-    private func tetrominoHeight() -> Int {
-        guard let blocks = tetromino else { return 0 }
-        let ys = blocks.map { $0.y }
-        return (ys.max() ?? 0) - (ys.min() ?? 0) + 1
+        .frame(width: 100, height: 100)
     }
 }
 
