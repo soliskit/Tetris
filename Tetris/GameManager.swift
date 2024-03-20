@@ -55,20 +55,20 @@ class GameManager: ObservableObject {
             return newY < rows && isPositionValid(x: block.x, y: newY) && gameBoard[newY][block.x] == nil
         }
         if canMoveDown {
-            for block in tetromino {
+            tetromino.forEach { block in
                 if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = nil
                 }
             }
             let movedTetromino = tetromino.map { Block(x: $0.x, y: $0.y + 1, color: $0.color) }
-            for block in movedTetromino {
+            movedTetromino.forEach { block in
                 if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = block
                 }
             }
             currentTetromino = movedTetromino
         } else {
-            for block in tetromino {
+            tetromino.forEach { block in
                 if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = block
                 }
