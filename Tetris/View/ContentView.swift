@@ -13,35 +13,34 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Text("Score:")
+            Text("State: \(gameManager.state)")
                 .font(.headline)
             Text("High Score: \(highScore)")
                 .font(.caption)
             
             HStack {
-//                TetrominoPreview(tetromino: gameManager.heldTetromino)
-//                Spacer()
-                TetrominoPreview(tetromino: gameManager.nextTetromino)
+                TetrominoPreview(tetromino: gameManager.heldPiece)
+                Spacer()
+                TetrominoPreview(tetromino: gameManager.nextPiece)
             }
-            .padding()
             
             GameBoardView(gameManager: gameManager)
                 .aspectRatio(0.5, contentMode: .fit)
                 .padding()
                 .background(.black.opacity(0.5))
                 .cornerRadius(10)
-                        if gameManager.gameState == .gameOver {
-                            Button("Start New Game", action: gameManager.startGame)
-                        } else {
-                            if gameManager.gameState == .playing {
-                                Button("Pause", action: gameManager.togglePauseResumeGame)
-                            } else {
-                                Button("Resume", action: gameManager.togglePauseResumeGame)
-                            }
-                        }
-        }
-        .onAppear {
-            gameManager.startGame()
+            Button(gameManager.state == .playing ? "Pause" : "Start") {
+                if gameManager.state == .playing {
+                    gameManager.handleAction(.pause)
+                } else {
+                    gameManager.handleAction(.resume)
+                }
+            }
+            if gameManager.state == .gameOver {
+                Button("Start Game") {
+                    gameManager.startGame()
+                }
+            }
         }
         .padding()
         .background(.teal.opacity(0.75))

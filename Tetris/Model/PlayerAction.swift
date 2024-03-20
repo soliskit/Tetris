@@ -15,10 +15,11 @@ enum PlayerAction {
     case moveRight
     /// Hold the current Tetromino to swap it with the next one.
     case hold
+    case rotate
     /// Soft drop the Tetromino, making it fall faster.
-    case softDrop
+    case drop
     /// Pause the game.
     case pause
-    /// Start or restart the game.
-    case start
+    /// Resumes the game.
+    case resume
 }

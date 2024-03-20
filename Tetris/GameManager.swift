@@ -15,7 +15,7 @@ class GameManager: ObservableObject {
     @Published var nextPiece: Tetromino
     @Published var gameBoard: [[Tetromino?]]
     @Published var gameTimer: Timer?
-    @Published var state: GameState = .paused
+    @Published var state: GameState = .gameOver
     @Published var gameScore: Int = 0
     @Published var gameLevel: Int = 1
     
@@ -35,18 +35,6 @@ class GameManager: ObservableObject {
         startGameTimer()
     }
     
-    private func pauseGame() {
-        guard state == .playing else { return }
-        state = .paused
-        gameTimer?.invalidate()
-    }
-    
-    private func resumeGame() {
-        guard state == .paused else { return }
-        state = .playing
-        startGameTimer()
-    }
-    
     private func gameOver() {
         state = .gameOver
         gameTimer?.invalidate()
@@ -58,6 +46,11 @@ class GameManager: ObservableObject {
         gameTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.movePieceDown(isSoftDropping: withSoftDrop)
         }
+    }
+    
+    private func spawnNewPiece() {
+        currentPiece = nextPiece
+        nextPiece = TetrominoFactory.generate()
     }
     
     private func movePieceDown(isSoftDropping: Bool = false) {
@@ -77,11 +70,6 @@ class GameManager: ObservableObject {
         // Logic to lock the Tetromino on the game board and check for completed lines
     }
     
-    private func spawnNewPiece() {
-        currentPiece = nextPiece
-        nextPiece = TetrominoFactory.generate()
-    }
-    
     func handleAction(_ action: PlayerAction) {
         switch action {
             case .moveLeft:
@@ -90,13 +78,27 @@ class GameManager: ObservableObject {
                 movePieceRight()
             case .hold:
                 holdPiece()
-            case .softDrop:
+            case .rotate:
+                rotateCurrentPiece()
+            case .drop:
                 toggleSoftDrop()
             case .pause:
                 pauseGame()
-            case .start:
-                startGame()
+            case .resume:
+                resumeGame()
         }
+    }
+    
+    private func pauseGame() {
+        guard state == .playing else { return }
+        state = .paused
+        gameTimer?.invalidate()
+    }
+    
+    private func resumeGame() {
+        guard state == .paused else { return }
+        state = .playing
+        startGameTimer()
     }
     
     private func movePieceLeft() {
@@ -123,7 +125,7 @@ class GameManager: ObservableObject {
         currentPiece = swapPiece
     }
     
-    func toggleSoftDrop() {
+    private func toggleSoftDrop() {
         guard state == .playing else { return }
         if gameTimer?.timeInterval != softDropSpeed {
             startGameTimer(withSoftDrop: true)
@@ -132,7 +134,7 @@ class GameManager: ObservableObject {
         }
     }
     
-    func rotateCurrentPiece(clockwise: Bool) {
+    func rotateCurrentPiece(clockwise: Bool = true) {
         guard state == .playing else { return }
         currentPiece.rotate(clockwise: clockwise)
         
