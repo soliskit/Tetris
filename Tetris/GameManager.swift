@@ -99,14 +99,19 @@ class GameManager: ObservableObject {
     
     private func updateGameState(forced: Bool = false) {
         if forced || isPiecePositionValid(currentPiece) {
-            lockPiecePosition()
-            checkCompletedLines()
-            spawnNewPiece()
-            updateGameSpeed()
+            if state != .gameOver {
+                lockPiecePosition()
+                checkCompletedLines()
+            }
+            if forced {
+                spawnNewPiece()
+            }
+            if state != .gameOver {
+                updateGameSpeed()
+            }
         } else {
-            // Handle invalid move or rotation, possibly revert the move or check for game over
+            fatalError("Invalid move or rotation that aren't forced")
         }
-        // Notify UI to refresh due to state changes
         objectWillChange.send()
     }
     
@@ -219,4 +224,3 @@ class GameManager: ObservableObject {
         return scores[lines] ?? 0
     }
 }
-
