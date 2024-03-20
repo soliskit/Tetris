@@ -42,38 +42,34 @@ class GameManager: ObservableObject {
         if !(xIsValid && yIsValidForSpawn) {
             return false
         }
-        if y >= 0 {
+        if y >= 0 && y < rows {
             return gameBoard[y][x] == nil
         }
         return true
     }
     
-    private func dropTetromino() {
+    private func dropAndUpdateTetrominoPosition() {
         guard let tetromino = currentTetromino else { return }
-        let movedTetromino: [Block] = tetromino.compactMap { block in
+        let canMoveDown = tetromino.allSatisfy { block in
             let newY = block.y + 1
-            if newY < rows && isPositionValid(x: block.x, y: newY) && gameBoard[newY][block.x] == nil {
-                return Block(x: block.x, y: newY, color: block.color)
-            } else {
-                return nil
-            }
+            return newY < rows && isPositionValid(x: block.x, y: newY) && gameBoard[newY][block.x] == nil
         }
-        if movedTetromino.count == tetromino.count {
+        if canMoveDown {
             for block in tetromino {
-                if block.y >= 0 && block.y < rows && block.x >= 0 && block.x < columns {
+                if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = nil
                 }
             }
-            
+            let movedTetromino = tetromino.map { Block(x: $0.x, y: $0.y + 1, color: $0.color) }
             for block in movedTetromino {
-                if block.y < rows {
+                if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = block
                 }
             }
             currentTetromino = movedTetromino
         } else {
             for block in tetromino {
-                if block.y < rows {
+                if isPositionValid(x: block.x, y: block.y) {
                     gameBoard[block.y][block.x] = block
                 }
             }
@@ -95,7 +91,7 @@ class GameManager: ObservableObject {
     
     private func startGameTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: currentDropSpeed, repeats: true) { [weak self] _ in
-            self?.dropTetromino()
+            self?.dropAndUpdateTetrominoPosition()
         }
     }
     
@@ -118,7 +114,7 @@ class GameManager: ObservableObject {
             case .rotate:
                 rotateTetromino()
             case .drop:
-                dropTetromino()
+                dropAndUpdateTetrominoPosition()
             case .hold:
                 holdTetromino()
         }
@@ -150,3 +146,45 @@ class GameManager: ObservableObject {
         // Swap currentTetromino with heldTetromino
     }
 }
+
+/*
+
+ import SwiftUI
+struct Block: Identifiable {
+    let id = UUID()
+    var x: Int
+    var y: Int
+    var color: Color
+}
+enum PlayerAction {
+    case moveLeft
+    case moveRight
+    case rotate
+    case drop
+    case hold
+}
+enum GameState: String {
+    case playing
+    case paused
+    case gameOver
+}
+
+class GameManager: ObservableObject {
+    @Published var gameBoard: [[Block?]]
+    @Published var currentTetromino: [Block]?
+    @Published var heldTetromino: [Block]?
+    @Published var nextTetromino: [Block]?
+    @Published var gameState: GameState = .gameOver
+    @Published var score: Int = 0
+    
+    private var timer: Timer?
+    private let normalDropSpeed: TimeInterval = 0.5
+    private let fastDropSpeed: TimeInterval = 0.05
+    private var currentDropSpeed: TimeInterval
+    
+    let rows: Int = 20
+    let columns: Int = 10
+}
+use these data models to create a game manager class for a Tetris game. Implement logic to handle spawning and dropping down a piece. Add the ability to pause and resume the game. Use player action for soft drop, moving left right and holding a piece.
+
+*/
