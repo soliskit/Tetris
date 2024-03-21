@@ -8,14 +8,14 @@
 import SwiftUI
 
 class GameManager: ObservableObject {
-     let rows: Int = 20
-     let columns: Int = 10
-     let normalDropSpeed: TimeInterval = 1.0
-     let softDropSpeed: TimeInterval = 0.1
+    let rows: Int = 20
+    let columns: Int = 10
+    let normalDropSpeed: TimeInterval = 1.0
+    let softDropSpeed: TimeInterval = 0.1
     @Published var previousPosition: Position?
-    @Published var currentPiece: Tetromino?
-    @Published var heldPiece: Tetromino?
+    @Published var currentPiece: Tetromino
     @Published var nextPiece: Tetromino
+    @Published var heldPiece: Tetromino?
     @Published var gameBoard: [[GameCell]]
     @Published var gameTimer: Timer?
     @Published var state: GameState = .gameOver
@@ -41,15 +41,14 @@ class GameManager: ObservableObject {
         state = .gameOver
         gameTimer?.invalidate()
         gameTimer = nil
+        heldPiece = nil
     }
     
     func startGameTimer(withSoftDrop: Bool = false) {
         gameTimer?.invalidate()
         gameTimer = nil
         let interval = withSoftDrop ? softDropSpeed : normalDropSpeed / Double(gameLevel)
-        gameTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.movePieceDown(isSoftDropping: withSoftDrop)
-        }
+        gameTimer = Timer.scheduledTimer(timeInterval: interval, target: self, selector: #selector(movePieceDown), userInfo: nil, repeats: true)
     }
     
     func spawnNewTetromino() {
@@ -63,8 +62,9 @@ class GameManager: ObservableObject {
         }
     }
     
-    func movePieceDown(isSoftDropping: Bool = false) {
-        guard state == .playing, var movedPiece = currentPiece else { return }
+    @objc func movePieceDown(isSoftDropping: Bool = false) {
+        guard state == .playing else { return }
+        var movedPiece = currentPiece
         movedPiece.position.row += 1
         if isPiecePositionValid(movedPiece) {
             currentPiece = movedPiece
@@ -82,19 +82,18 @@ class GameManager: ObservableObject {
     }
     
     func lockPiecePosition() {
-        guard state == .playing, let lockedPiece = currentPiece else { return }
-        lockedPiece.shape.enumerated().forEach { y, row in
+        guard state == .playing else { return }
+        currentPiece.shape.enumerated().forEach { y, row in
             row.enumerated().forEach { x, cell in
                 guard cell else { return }
-                let globalRow = Int(lockedPiece.position.row) + y
-                let globalCol = Int(lockedPiece.position.column) + x
+                let globalRow = Int(currentPiece.position.row) + y
+                let globalCol = Int(currentPiece.position.column) + x
                 if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
                     gameBoard[globalRow][globalCol].isFilled = true
-                    gameBoard[globalRow][globalCol].color = lockedPiece.color
+                    gameBoard[globalRow][globalCol].color = currentPiece.color
                 }
             }
         }
-        currentPiece = nil
         previousPosition = nil
     }
     
@@ -112,7 +111,6 @@ class GameManager: ObservableObject {
     }
     
     func updateGameBoardWithCurrentPiece() {
-        guard let currentPiece = currentPiece else { return }
         if let previousPosition = previousPosition {
             currentPiece.shape.enumerated().forEach { y, row in
                 row.enumerated().forEach { x, cell in
@@ -175,25 +173,27 @@ class GameManager: ObservableObject {
     }
     
     private func movePieceLeft() {
-        guard state == .playing, var movedPiece = currentPiece else { return }
+        guard state == .playing else { return }
+        var movedPiece = currentPiece
         previousPosition = movedPiece.position
         movedPiece.position.column -= 1
         if isPiecePositionValid(movedPiece) {
             currentPiece = movedPiece
             updateGameBoardWithCurrentPiece()
         } else {
-            currentPiece?.position = previousPosition ?? Position(row: 0, column: 0)
+            currentPiece.position = previousPosition ?? Position(row: 0, column: 0)
         }
     }
     
     private func movePieceRight() {
-        guard state == .playing, var movedPiece = currentPiece else { return }
+        guard state == .playing else { return }
+        var movedPiece = currentPiece
         movedPiece.position.column += 1
         if isPiecePositionValid(movedPiece) {
             currentPiece = movedPiece
             updateGameBoardWithCurrentPiece()
         } else {
-            currentPiece?.position = previousPosition ?? Position(row: 0, column: 0)
+            currentPiece.position = previousPosition ?? Position(row: 0, column: 0)
         }
     }
     
@@ -213,8 +213,9 @@ class GameManager: ObservableObject {
     }
     
     func rotatePiece() {
-        guard state == .playing, var piece = currentPiece else { return }
-        let originalPiece = piece
+        guard state == .playing else { return }
+        var piece = currentPiece
+        let originalPiece = currentPiece
         piece.rotate(gameBoard: gameBoard)
         if isPiecePositionValid(piece) {
             currentPiece = piece
@@ -238,14 +239,7 @@ class GameManager: ObservableObject {
         }
     }
     
-     func updateGameSpeed() {
-        let interval = normalDropSpeed / Double(gameLevel)
-        if gameTimer?.timeInterval != interval {
-            startGameTimer()
-        }
-    }
-    
-     func calculateScore(forLines lines: Int) -> Int {
+    func calculateScore(forLines lines: Int) -> Int {
         let scores = [1: 100, 2: 300, 3: 500, 4: 800]
         return scores[lines] ?? 0
     }

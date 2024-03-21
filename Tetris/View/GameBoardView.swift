@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct GameBoardView: View {
-    private let rows: Int = 20
-    private let columns: Int = 10
     @ObservedObject var gameManager: GameManager
     
     var body: some View {
@@ -18,13 +16,26 @@ struct GameBoardView: View {
             let boardDimensions = calculateBoardDimensions(blockSize: blockSize)
             ZStack {
                 BoardBackgroundView(boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
-                GridLinesView(columns: columns, rows: rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
-                ForEach(0..<rows, id: \.self) { row in
-                    ForEach(0..<columns, id: \.self) { column in
+                GridLinesView(columns: gameManager.columns, rows: gameManager.rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
+                
+                ForEach(0..<gameManager.rows, id: \.self) { row in
+                    ForEach(0..<gameManager.columns, id: \.self) { column in
                         Rectangle()
                             .fill(gameManager.gameBoard[row][column].isFilled ? gameManager.gameBoard[row][column].color ?? .clear : .clear)
                             .frame(width: blockSize, height: blockSize)
                             .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                    }
+                }
+                
+                ForEach(0..<gameManager.currentPiece.shape.count, id: \.self) { row in
+                    ForEach(0..<gameManager.currentPiece.shape[row].count, id: \.self) { column in
+                        if gameManager.currentPiece.shape[row][column] {
+                            Rectangle()
+                                .fill(gameManager.currentPiece.color)
+                                .frame(width: blockSize, height: blockSize)
+                                .position(x: blockSize * CGFloat(column + Int(gameManager.currentPiece.position.column)) + blockSize / 2,
+                                          y: blockSize * CGFloat(row + Int(gameManager.currentPiece.position.row)) + blockSize / 2)
+                        }
                     }
                 }
             }
@@ -33,13 +44,14 @@ struct GameBoardView: View {
     }
     
     private func calculateBlockSize(from size: CGSize) -> CGFloat {
-        min(size.width / CGFloat(columns), size.height / CGFloat(rows))
+        min(size.width / CGFloat(gameManager.columns), size.height / CGFloat(gameManager.rows))
     }
     
     private func calculateBoardDimensions(blockSize: CGFloat) -> CGSize {
-        CGSize(width: blockSize * CGFloat(columns), height: blockSize * CGFloat(rows))
+        CGSize(width: blockSize * CGFloat(gameManager.columns), height: blockSize * CGFloat(gameManager.rows))
     }
 }
+
 
 struct BoardBackgroundView: View {
     let boardWidth: CGFloat

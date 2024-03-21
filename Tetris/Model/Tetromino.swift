@@ -7,41 +7,22 @@
 
 import SwiftUI
 
-/// Represents a Tetromino shape in a Tetris game
 struct Tetromino: Identifiable {
-    /// Unique identifier for each Tetromino instance.
     let id = UUID()
-    /// 2D array representing the shape of the Tetromino, where `true` indicates a filled block.
     var shape: [[Bool]]
-    /// Color of the Tetromino.
     var color: Color
     var position: Position
-    /// Current rotation state of the Tetromino, represented as an integer.
     var rotationState: Int = 0
-    
-    /// Rotation points used to calculate the new shape of the Tetromino after rotation.
     var rotationPoints: [[[Int]]]
-    /// Wall kick data to adjust the position of the Tetromino when it rotates next to a wall or another Tetromino.
     var wallKickData: [[CGPoint]]
     
-    var row: CGFloat {
-        get { position.row }
-        set { position.row = newValue }
-    }
-    
-    var column: CGFloat {
-        get { position.column }
-        set { position.column = newValue }
-    }
-    
-    /// Rotates the Tetromino clockwise, checking for collisions and applying wall kicks if necessary.
-    mutating func rotate() {
+    mutating func rotate(gameBoard: [[GameCell]]) {
         let previousState = rotationState
-        let nextState = (rotationState + 1) % 4
+        rotationState = (rotationState + 1) % 4
         let newShape = rotatedShape()
-        rotationState = nextState
-        if checksCollision(for: newShape, atRow: row, andColumn: column) {
-            if !applyWallKick(from: previousState, to: nextState) {
+        
+        if isWithinBoundsAndNotColliding(for: newShape, atRow: position.row, andColumn: position.column, gameBoard: gameBoard) {
+            if !applyWallKick(from: previousState, to: rotationState, gameBoard: gameBoard) {
                 rotationState = previousState
             } else {
                 shape = newShape
@@ -51,8 +32,21 @@ struct Tetromino: Identifiable {
         }
     }
     
-    /// Calculates the new shape of the Tetromino after a rotation operation.
-    /// - Returns: A 2D array representing the new shape of the Tetromino.
+    private mutating func applyWallKick(from previousState: Int, to nextState: Int, gameBoard: [[GameCell]]) -> Bool {
+        let kickIndex = previousState * 4 + nextState
+        guard wallKickData.indices.contains(kickIndex) else { return false }
+        return wallKickData[kickIndex].contains { kickPosition in
+            let testRow = position.row + kickPosition.y
+            let testColumn = position.column + kickPosition.x
+            if !isWithinBoundsAndNotColliding(for: shape, atRow: testRow, andColumn: testColumn, gameBoard: gameBoard) {
+                position.row += kickPosition.y
+                position.column += kickPosition.x
+                return true
+            }
+            return false
+        }
+    }
+    
     private func rotatedShape() -> [[Bool]] {
         let size = shape.count
         return (0..<size).map { row in
@@ -62,27 +56,6 @@ struct Tetromino: Identifiable {
         }
     }
     
-    mutating func applyWallKick(from previousState: Int, to nextState: Int) -> Bool {
-        let kickIndex = previousState * 4 + nextState
-        guard wallKickData.indices.contains(kickIndex) else { return false }
-        return wallKickData[kickIndex].contains { kickPosition in
-            let testRow = row + kickPosition.y
-            let testColumn = column + kickPosition.x
-            if !checksCollision(for: shape, atRow: testRow, andColumn: testColumn) {
-                row += kickPosition.y
-                column += kickPosition.x
-                return true
-            }
-            return false
-        }
-    }
-    
-    /// Checks if the Tetromino collides with the game board boundaries or other Tetrominos after a move or rotation.
-    /// - Parameters:
-    ///   - shape: The 2D array representing the shape of the Tetromino to check for collisions.
-    ///   - row: The row position of the Tetromino on the game board.
-    ///   - column: The column position of the Tetromino on the game board.
-    /// - Returns: A Boolean value indicating whether a collision occurs.
     private func checksCollision(for shape: [[Bool]], atRow row: CGFloat, andColumn column: CGFloat) -> Bool {
         let boardRows = 20
         let boardColumns = 10
@@ -95,5 +68,25 @@ struct Tetromino: Identifiable {
                 }()
             }
         }
+    }
+    
+    private func isWithinBoundsAndNotColliding(for newShape: [[Bool]], atRow: CGFloat, andColumn: CGFloat, gameBoard: [[GameCell]]) -> Bool {
+        for (rowIndex, row) in newShape.enumerated() {
+            for (columnIndex, isFilled) in row.enumerated() {
+                if isFilled {
+                    let boardRow = Int(atRow) + rowIndex
+                    let boardColumn = Int(andColumn) + columnIndex
+                    
+                    if boardRow < 0 || boardRow >= 20 || boardColumn < 0 || boardColumn >= 10 {
+                        return false
+                    }
+                    
+                    if gameBoard.indices.contains(boardRow) && gameBoard[boardRow].indices.contains(boardColumn) && gameBoard[boardRow][boardColumn].isFilled {
+                        return false
+                    }
+                }
+            }
+        }
+        return true
     }
 }
