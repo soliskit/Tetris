@@ -51,4 +51,3 @@ struct ContentView: View {
 #Preview("Content View") {
     ContentView(gameManager: GameManager())
 }
-

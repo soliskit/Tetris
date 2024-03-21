@@ -52,7 +52,6 @@ struct GameBoardView: View {
     }
 }
 
-
 struct BoardBackgroundView: View {
     let boardWidth: CGFloat
     let boardHeight: CGFloat
