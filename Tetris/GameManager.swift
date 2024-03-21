@@ -8,10 +8,10 @@
 import SwiftUI
 
 class GameManager: ObservableObject {
-    private let rows: Int = 20
-    private let columns: Int = 10
-    private let normalDropSpeed: TimeInterval = 1.0
-    private let softDropSpeed: TimeInterval = 0.1
+     let rows: Int = 20
+     let columns: Int = 10
+     let normalDropSpeed: TimeInterval = 1.0
+     let softDropSpeed: TimeInterval = 0.1
     @Published var previousPosition: Position?
     @Published var currentPiece: Tetromino?
     @Published var heldPiece: Tetromino?
@@ -37,20 +37,22 @@ class GameManager: ObservableObject {
         startGameTimer()
     }
     
-    private func gameOver() {
+    func gameOver() {
         state = .gameOver
         gameTimer?.invalidate()
+        gameTimer = nil
     }
     
-    private func startGameTimer(withSoftDrop: Bool = false) {
+    func startGameTimer(withSoftDrop: Bool = false) {
         gameTimer?.invalidate()
+        gameTimer = nil
         let interval = withSoftDrop ? softDropSpeed : normalDropSpeed / Double(gameLevel)
         gameTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             self?.movePieceDown(isSoftDropping: withSoftDrop)
         }
     }
     
-    private func spawnNewTetromino() {
+    func spawnNewTetromino() {
         var newPiece = TetrominoFactory.generate()
         newPiece.position = Position(row: 0, column: CGFloat(columns / 2) - CGFloat(newPiece.shape[0].count / 2))
         if isPiecePositionValid(newPiece) {
@@ -79,7 +81,7 @@ class GameManager: ObservableObject {
         }
     }
     
-    private func lockPiecePosition() {
+    func lockPiecePosition() {
         guard state == .playing, let lockedPiece = currentPiece else { return }
         lockedPiece.shape.enumerated().forEach { y, row in
             row.enumerated().forEach { x, cell in
@@ -96,7 +98,7 @@ class GameManager: ObservableObject {
         previousPosition = nil
     }
     
-    private func removeCompletedLines() {
+    func removeCompletedLines() {
         let linesToClear = gameBoard.enumerated().filter { $0.element.allSatisfy { $0.isFilled } }.map { $0.offset }
         linesToClear.reversed().forEach { line in
             gameBoard.remove(at: line)
@@ -109,7 +111,7 @@ class GameManager: ObservableObject {
         }
     }
     
-    private func updateGameBoardWithCurrentPiece() {
+    func updateGameBoardWithCurrentPiece() {
         guard let currentPiece = currentPiece else { return }
         if let previousPosition = previousPosition {
             currentPiece.shape.enumerated().forEach { y, row in
@@ -161,14 +163,15 @@ class GameManager: ObservableObject {
     
     private func pauseGame() {
         guard state == .playing else { return }
-        state = .paused
         gameTimer?.invalidate()
+        gameTimer = nil
+        state = .paused
     }
     
     private func resumeGame() {
         guard state == .paused else { return }
-        state = .playing
         startGameTimer()
+        state = .playing
     }
     
     private func movePieceLeft() {
@@ -228,12 +231,12 @@ class GameManager: ObservableObject {
         return false
     }
     
-    private func isPiecePositionValid(_ tetromino: Tetromino) -> Bool {
+     func isPiecePositionValid(_ tetromino: Tetromino) -> Bool {
         !tetromino.shape.enumerated().contains { y, row in
             row.enumerated().contains { x, isPartOfTetromino in
                 if isPartOfTetromino {
-                    let globalRow = Int(tetromino.row) + y
-                    let globalCol = Int(tetromino.column) + x
+                    let globalRow = Int(tetromino.position.row) + y
+                    let globalCol = Int(tetromino.position.column) + x
                     return globalRow < 0 || globalRow >= rows || globalCol < 0 || globalCol >= columns || gameBoard[globalRow][globalCol].isFilled
                 } else {
                     return false
@@ -242,14 +245,14 @@ class GameManager: ObservableObject {
         }
     }
     
-    private func updateGameSpeed() {
+     func updateGameSpeed() {
         let interval = normalDropSpeed / Double(gameLevel)
         if gameTimer?.timeInterval != interval {
             startGameTimer()
         }
     }
     
-    private func calculateScore(forLines lines: Int) -> Int {
+     func calculateScore(forLines lines: Int) -> Int {
         let scores = [1: 100, 2: 300, 3: 500, 4: 800]
         return scores[lines] ?? 0
     }
