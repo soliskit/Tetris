@@ -23,6 +23,7 @@ struct TetrominoFactory {
                     [false, false, false, false]
                 ],
                 color: Color.cyan,
+                position: Position(row: 0, column: 3),
                 rotationPoints: [
                     [[-1, 1], [0, 1], [1, 1], [2, 1]],
                     [[1, -1], [1, 0], [1, 1], [1, 2]],
@@ -40,6 +41,7 @@ struct TetrominoFactory {
             (
                 shape: [[true, true], [true, true]],
                 color: Color.yellow,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [[[0, 0]]],
                 wallKickData: [[CGPoint.zero]]
             ),
@@ -51,6 +53,7 @@ struct TetrominoFactory {
                     [false, false, false]
                 ],
                 color: Color.purple,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [
                     [[1, 0], [0, 1], [1, 1], [2, 1]],
                     [[1, 0], [1, 1], [1, 2], [2, 1]],
@@ -76,6 +79,7 @@ struct TetrominoFactory {
                     [false, false, false]
                 ],
                 color: Color.green,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [
                     [[1, 0], [1, 1], [2, 1], [2, 2]],
                     [[2, 1], [1, 1], [1, 2], [0, 2]],
@@ -97,6 +101,7 @@ struct TetrominoFactory {
                     [false, false, false]
                 ],
                 color: Color.red,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [
                     [[0, 0], [0, 1], [1, 1], [1, 2]],
                     [[2, 0], [1, 0], [1, 1], [0, 1]],
@@ -118,6 +123,7 @@ struct TetrominoFactory {
                     [false, false, false]
                 ],
                 color: Color.blue,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [
                     [[0, 0], [1, 0], [1, 1], [1, 2]],
                     [[0, 1], [0, 2], [1, 1], [2, 1]],
@@ -139,6 +145,7 @@ struct TetrominoFactory {
                     [false, false, false]
                 ],
                 color: Color.orange,
+                position: Position(row: 0, column: 4),
                 rotationPoints: [
                     [[0, 1], [1, 0], [1, 1], [1, 2]],
                     [[0, 1], [1, 2], [1, 1], [2, 1]],
@@ -154,13 +161,13 @@ struct TetrominoFactory {
             )
         ]
         
-        let randomIndex = Int.random(in: 0..<shapes.count)
+        let randomIndex = Int.random(in: 0...6)
         let selectedShape = shapes[randomIndex]
         
         return Tetromino(
             shape: selectedShape.shape,
             color: selectedShape.color,
-            position: Position(row: 0, column: CGFloat(Int.random(in: 0...10))),
+            position: selectedShape.position,
             rotationPoints: selectedShape.rotationPoints,
             wallKickData: selectedShape.wallKickData
         )
