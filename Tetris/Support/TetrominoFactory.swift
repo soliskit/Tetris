@@ -160,8 +160,7 @@ struct TetrominoFactory {
         return Tetromino(
             shape: selectedShape.shape,
             color: selectedShape.color,
-            row: 0,
-            column: CGFloat(Int.random(in: 0...10)),
+            position: Position(row: 0, column: CGFloat(Int.random(in: 0...10))),
             rotationPoints: selectedShape.rotationPoints,
             wallKickData: selectedShape.wallKickData
         )

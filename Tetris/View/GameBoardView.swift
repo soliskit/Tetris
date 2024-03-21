@@ -19,7 +19,14 @@ struct GameBoardView: View {
             ZStack {
                 BoardBackgroundView(boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
                 GridLinesView(columns: columns, rows: rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
-                TetrominosView(tetrominos: gameManager.tetrominos, blockSize: blockSize)
+                ForEach(0..<rows, id: \.self) { row in
+                    ForEach(0..<columns, id: \.self) { column in
+                        Rectangle()
+                            .fill(gameManager.gameBoard[row][column].isFilled ? gameManager.gameBoard[row][column].color ?? .clear : .clear)
+                            .frame(width: blockSize, height: blockSize)
+                            .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                    }
+                }
             }
             .frame(width: boardDimensions.width, height: boardDimensions.height)
         }
@@ -67,37 +74,5 @@ struct GridLinesView: View {
             }
         }
         .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-    }
-}
-
-struct TetrominosView: View {
-    let tetrominos: [Tetromino]
-    let blockSize: CGFloat
-    
-    var body: some View {
-        ForEach(tetrominos) { tetromino in
-            TetrominoView(tetromino: tetromino, blockSize: blockSize)
-        }
-    }
-}
-
-struct TetrominoView: View {
-    let tetromino: Tetromino
-    let blockSize: CGFloat
-    
-    var body: some View {
-        GeometryReader { _ in
-            ForEach(0..<tetromino.shape.count, id: \.self) { rowIdx in
-                ForEach(0..<tetromino.shape[rowIdx].count, id: \.self) { colIdx in
-                    if tetromino.shape[rowIdx][colIdx] {
-                        Rectangle()
-                            .foregroundColor(tetromino.color)
-                            .frame(width: blockSize, height: blockSize)
-                            .offset(x: blockSize * CGFloat(colIdx) + (tetromino.column * blockSize),
-                                    y: blockSize * CGFloat(rowIdx) + (tetromino.row * blockSize))
-                    }
-                }
-            }
-        }
     }
 }

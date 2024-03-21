@@ -15,10 +15,7 @@ struct Tetromino: Identifiable {
     var shape: [[Bool]]
     /// Color of the Tetromino.
     var color: Color
-    /// Current row position of the Tetromino in the game board.
-    var row: CGFloat
-    /// Current column position of the Tetromino in the game board.
-    var column: CGFloat
+    var position: Position
     /// Current rotation state of the Tetromino, represented as an integer.
     var rotationState: Int = 0
     
@@ -26,6 +23,16 @@ struct Tetromino: Identifiable {
     var rotationPoints: [[[Int]]]
     /// Wall kick data to adjust the position of the Tetromino when it rotates next to a wall or another Tetromino.
     var wallKickData: [[CGPoint]]
+    
+    var row: CGFloat {
+        get { position.row }
+        set { position.row = newValue }
+    }
+    
+    var column: CGFloat {
+        get { position.column }
+        set { position.column = newValue }
+    }
     
     /// Rotates the Tetromino clockwise, checking for collisions and applying wall kicks if necessary.
     mutating func rotate() {
