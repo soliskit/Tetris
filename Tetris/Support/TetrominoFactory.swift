@@ -160,7 +160,9 @@ struct TetrominoFactory {
                 ]
             )
         ]
-        let selectedShape = shapes.randomElement()
+        guard let selectedShape = shapes.randomElement() else {
+            fatalError("Unable to generate Tetromino")
+        }
         
         return Tetromino(
             shape: selectedShape.shape,
