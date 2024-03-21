@@ -28,6 +28,10 @@ class GameManager: ObservableObject {
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
     }
     
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     func startGame() {
         spawnNewTetromino()
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
@@ -64,10 +68,9 @@ class GameManager: ObservableObject {
     
     @objc func movePieceDown(isSoftDropping: Bool = false) {
         guard state == .playing else { return }
-        var movedPiece = currentPiece
-        movedPiece.position.row += 1
-        if isPiecePositionValid(movedPiece) {
-            currentPiece = movedPiece
+        currentPiece.position.row += 1
+        if isPiecePositionValid(currentPiece) {
+            self.currentPiece = currentPiece
             updateGameBoardWithCurrentPiece()
         } else {
             lockPiecePosition()
