@@ -7,24 +7,26 @@
 
 import SwiftUI
 
-class GameManager: ObservableObject {
-    let rows: Int = 20
-    let columns: Int = 10
-    let normalDropSpeed: TimeInterval = 1.0
-    let softDropSpeed: TimeInterval = 0.1
-    @Published var previousPosition: Position?
-    @Published var currentPiece: Tetromino
-    @Published var nextPiece: Tetromino
-    @Published var heldPiece: Tetromino?
-    @Published var gameBoard: [[GameCell]]
-    @Published var gameTimer: Timer?
-    @Published var state: GameState = .gameOver
-    @Published var gameScore: Int = 0
-    @Published var gameLevel: Int = 1
+@Observable
+class GameManager {
+    // MARK: - Properties
+    private let rows: Int = 20
+    private let columns: Int = 10
+    private let standardDropInterval: TimeInterval = 1.0
+    private let quickDropInterval: TimeInterval = 0.1
+    private var timer: Timer?
+    var currentTetromino: Tetromino
+    var nextTetromino: Tetromino
+    var heldTetromino: Tetromino?
+    var gameBoard: [[GameCell]]
+    var state: GameState = .gameOver
+    var score: Int = 0
+    var level: Int = 1
     
+    // MARK: - Initialization & Deinitialization
     init() {
-        currentPiece = TetrominoFactory.generate()
-        nextPiece = TetrominoFactory.generate()
+        currentTetromino = TetrominoFactory.generate()
+        nextTetromino = TetrominoFactory.generate()
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
     }
     
@@ -32,50 +34,42 @@ class GameManager: ObservableObject {
         NotificationCenter.default.removeObserver(self)
     }
     
+    // MARK: - Game State Management
     func startGame() {
-        spawnNewTetromino()
-        gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
-        state = .playing
-        gameScore = 0
-        gameLevel = 1
+        resetGame()
         startGameTimer()
     }
     
-    func gameOver() {
+    private func resetGame() {
+        state = .playing
+        gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
+        score = 0
+        level = 1
+        heldTetromino = nil
+    }
+    
+    private func gameOver() {
         state = .gameOver
-        gameTimer?.invalidate()
-        gameTimer = nil
-        heldPiece = nil
+        stopGameTimer()
     }
     
-    func startGameTimer(withSoftDrop: Bool = false) {
-        gameTimer?.invalidate()
-        gameTimer = nil
-        let interval = withSoftDrop ? softDropSpeed : normalDropSpeed / Double(gameLevel)
-        gameTimer = Timer.scheduledTimer(timeInterval: interval, target: self, selector: #selector(movePieceDown), userInfo: nil, repeats: true)
-    }
-    
-    func spawnNewTetromino() {
-        var newPiece = TetrominoFactory.generate()
-        newPiece.position = Position(row: 0, column: CGFloat(columns / 2) - CGFloat(newPiece.shape[0].count / 2))
-        if isPiecePositionValid(newPiece) {
-            currentPiece = newPiece
-            updateGameBoardWithCurrentPiece()
-        } else {
+    // MARK: - Tetromino Management
+    private func generateNextTetromino() {
+        currentTetromino = nextTetromino
+        nextTetromino = TetrominoFactory.generate()
+        if !isValidPosition(for: currentTetromino, at: currentTetromino.position) {
             gameOver()
         }
     }
     
-    @objc func movePieceDown(isSoftDropping: Bool = false) {
-        guard state == .playing else { return }
-        currentPiece.position.row += 1
-        if isPiecePositionValid(currentPiece) {
-            self.currentPiece = currentPiece
-            updateGameBoardWithCurrentPiece()
+    private func dropTetromino(isSoftDropping: Bool = false) {
+        let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
+        if isValidPosition(for: currentTetromino, at: newPosition) {
+            currentTetromino.position = newPosition
         } else {
-            lockPiecePosition()
-            removeCompletedLines()
-            spawnNewTetromino()
+            lockTetrominoInPlace()
+            clearFullRows()
+            generateNextTetromino()
         }
         if isSoftDropping {
             startGameTimer(withSoftDrop: true)
@@ -84,166 +78,127 @@ class GameManager: ObservableObject {
         }
     }
     
-    func lockPiecePosition() {
-        guard state == .playing else { return }
-        currentPiece.shape.enumerated().forEach { y, row in
-            row.enumerated().forEach { x, cell in
-                guard cell else { return }
-                let globalRow = Int(currentPiece.position.row) + y
-                let globalCol = Int(currentPiece.position.column) + x
-                if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
-                    gameBoard[globalRow][globalCol].isFilled = true
-                    gameBoard[globalRow][globalCol].color = currentPiece.color
+    private func lockTetrominoInPlace() {
+        currentTetromino.shape.enumerated().forEach { y, row in
+            row.enumerated().forEach { x, block in
+                guard block else { return }
+                let boardX = Int(currentTetromino.position.column) + x
+                let boardY = Int(currentTetromino.position.row) + y
+                guard boardX >= 0, boardX < columns, boardY >= 0, boardY < rows else {
+                    fatalError("The piece would exceed the boundaries")
                 }
+                gameBoard[boardY][boardX].isFilled = true
+                gameBoard[boardY][boardX].color = currentTetromino.color
             }
         }
-        previousPosition = nil
+        clearFullRows()
     }
     
-    func removeCompletedLines() {
-        let linesToClear = gameBoard.enumerated().filter { $0.element.allSatisfy { $0.isFilled } }.map { $0.offset }
-        linesToClear.reversed().forEach { line in
-            gameBoard.remove(at: line)
-            gameBoard.insert(Array(repeating: GameCell(), count: columns), at: 0)
+    // MARK: - Board Management
+    private func clearFullRows() {
+        let completedLineIndices = gameBoard.indices.filter { row in
+            gameBoard[row].allSatisfy { $0.isFilled }
         }
-        if !linesToClear.isEmpty {
-            updateGameBoardWithCurrentPiece()
-            gameScore += calculateScore(forLines: linesToClear.count)
-            gameLevel = (gameScore / 1000) + 1
+        guard !completedLineIndices.isEmpty else { return }
+        completedLineIndices.reversed().forEach { index in
+            gameBoard.remove(at: index)
         }
+        let newLines = Array(repeating: Array(repeating: GameCell(isFilled: false, color: nil), count: columns), count: completedLineIndices.count)
+        gameBoard.insert(contentsOf: newLines, at: 0)
     }
     
-    func updateGameBoardWithCurrentPiece() {
-        if let previousPosition = previousPosition {
-            currentPiece.shape.enumerated().forEach { y, row in
-                row.enumerated().forEach { x, cell in
-                    if cell {
-                        let globalRow = Int(previousPosition.row) + y
-                        let globalCol = Int(previousPosition.column) + x
-                        if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
-                            gameBoard[globalRow][globalCol].isFilled = false
-                            gameBoard[globalRow][globalCol].color = nil
-                        }
-                    }
+    private func isValidPosition(for tetromino: Tetromino, at position: Position) -> Bool {
+        let activeBlocks = tetromino.shape
+            .enumerated()
+            .flatMap { y, row in
+                row.enumerated().map { x, block -> (x: Int, y: Int, block: Bool) in
+                    (x: x + Int(position.column), y: y + Int(position.row), block: block)
                 }
             }
+            .filter { $0.block }
+        
+        return activeBlocks.allSatisfy { coordinate in
+            let (x, y, _) = coordinate
+            let isInBounds = x >= 0 && x < columns && y >= 0 && y < rows
+            let noOverlap = gameBoard.indices.contains(y) && gameBoard[y].indices.contains(x) && !gameBoard[y][x].isFilled
+            return isInBounds && noOverlap
         }
-        currentPiece.shape.enumerated().forEach { y, row in
-            row.enumerated().forEach { x, cell in
-                if cell {
-                    let globalRow = Int(currentPiece.position.row) + y
-                    let globalCol = Int(currentPiece.position.column) + x
-                    if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
-                        gameBoard[globalRow][globalCol].isFilled = true
-                        gameBoard[globalRow][globalCol].color = currentPiece.color
-                    }
-                }
-            }
-        }
-        previousPosition = currentPiece.position
     }
     
+    // MARK: - Timer Management
+    private func startGameTimer(withSoftDrop: Bool = false) {
+        let interval = withSoftDrop ? quickDropInterval : standardDropInterval / Double(level)
+        stopGameTimer()
+        timer = Timer.scheduledTimer(timeInterval: interval, target: self, selector: #selector(updateGame), userInfo: nil, repeats: true)
+    }
+    
+    private func stopGameTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    @objc private func updateGame() {
+        guard state != .gameOver else { return }
+        dropTetromino()
+    }
+    
+    // MARK: - Gameplay Controls
+
     func handleAction(_ action: PlayerAction) {
         switch action {
             case .moveLeft:
-                movePieceLeft()
+                moveTetromino(horizontalBy: -1)
             case .moveRight:
-                movePieceRight()
+                moveTetromino(horizontalBy: 1)
             case .hold:
-                holdPiece()
+                holdTetromino()
             case .rotate:
-                rotatePiece()
+                rotateTetromino()
             case .drop:
-                dropPiece()
+                dropTetromino(isSoftDropping: true)
             case .pause:
-                pauseGame()
+                togglePauseResume()
             case .resume:
-                resumeGame()
+                togglePauseResume()
         }
     }
     
-    private func pauseGame() {
+    private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
-        gameTimer?.invalidate()
-        gameTimer = nil
-        state = .paused
-    }
-    
-    private func resumeGame() {
-        guard state == .paused else { return }
-        startGameTimer()
-        state = .playing
-    }
-    
-    private func movePieceLeft() {
-        guard state == .playing else { return }
-        var movedPiece = currentPiece
-        previousPosition = movedPiece.position
-        movedPiece.position.column -= 1
-        if isPiecePositionValid(movedPiece) {
-            currentPiece = movedPiece
-            updateGameBoardWithCurrentPiece()
-        } else {
-            currentPiece.position = previousPosition ?? Position(row: 0, column: 0)
+        let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + CGFloat(deltaX))
+        if isValidPosition(for: currentTetromino, at: newPosition) {
+            currentTetromino.position = newPosition
         }
     }
     
-    private func movePieceRight() {
+    private func holdTetromino() {
         guard state == .playing else { return }
-        var movedPiece = currentPiece
-        movedPiece.position.column += 1
-        if isPiecePositionValid(movedPiece) {
-            currentPiece = movedPiece
-            updateGameBoardWithCurrentPiece()
-        } else {
-            currentPiece.position = previousPosition ?? Position(row: 0, column: 0)
-        }
-    }
-    
-    private func holdPiece() {
-        guard state == .playing, let swapPiece = heldPiece else { return }
-        heldPiece = currentPiece
-        currentPiece = swapPiece
-    }
-    
-    private func dropPiece() {
-        guard state == .playing else { return }
-        if gameTimer?.timeInterval != softDropSpeed {
-            startGameTimer(withSoftDrop: true)
-        } else {
-            startGameTimer()
-        }
-    }
-    
-    func rotatePiece() {
-        guard state == .playing else { return }
-        var piece = currentPiece
-        let originalPiece = currentPiece
-        piece.rotate(gameBoard: gameBoard)
-        if isPiecePositionValid(piece) {
-            currentPiece = piece
-            updateGameBoardWithCurrentPiece()
-        } else {
-            currentPiece = originalPiece
-        }
-    }
-    
-    func isPiecePositionValid(_ tetromino: Tetromino) -> Bool {
-        !tetromino.shape.enumerated().contains { y, row in
-            row.enumerated().contains { x, isPartOfTetromino in
-                if isPartOfTetromino {
-                    let globalRow = Int(tetromino.position.row) + y
-                    let globalCol = Int(tetromino.position.column) + x
-                    return globalRow < 0 || globalRow >= rows || globalCol < 0 || globalCol >= columns || gameBoard[globalRow][globalCol].isFilled
-                } else {
-                    return false
-                }
+        if let tetrominoToSwap = heldTetromino {
+            let previousPosition = currentTetromino.position
+            heldTetromino = currentTetromino
+            currentTetromino = tetrominoToSwap
+            currentTetromino.position = previousPosition
+            if !isValidPosition(for: currentTetromino, at: currentTetromino.position) {
+                gameOver()
             }
+        } else {
+            heldTetromino = currentTetromino
+            generateNextTetromino()
         }
     }
     
-    func calculateScore(forLines lines: Int) -> Int {
-        let scores = [1: 100, 2: 300, 3: 500, 4: 800]
-        return scores[lines] ?? 0
+    private func rotateTetromino() {
+        guard state == .playing else { return }
+        currentTetromino.rotate(gameBoard: gameBoard)
+    }
+    
+    private func togglePauseResume() {
+        if state == .playing {
+            state = .paused
+            stopGameTimer()
+        } else {
+            state = .playing
+            startGame()
+        }
     }
 }

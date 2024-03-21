@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct GameBoardView: View {
-    @ObservedObject var gameManager: GameManager
+    private let rows: Int = 20
+    private let columns: Int = 10
+    var gameManager: GameManager
     
     var body: some View {
         GeometryReader { geometry in
@@ -16,10 +18,10 @@ struct GameBoardView: View {
             let boardDimensions = calculateBoardDimensions(blockSize: blockSize)
             ZStack {
                 BoardBackgroundView(boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
-                GridLinesView(columns: gameManager.columns, rows: gameManager.rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
+                GridLinesView(columns: columns, rows: rows, blockSize: blockSize, boardWidth: boardDimensions.width, boardHeight: boardDimensions.height)
                 
-                ForEach(0..<gameManager.rows, id: \.self) { row in
-                    ForEach(0..<gameManager.columns, id: \.self) { column in
+                ForEach(0..<rows, id: \.self) { row in
+                    ForEach(0..<columns, id: \.self) { column in
                         Rectangle()
                             .fill(gameManager.gameBoard[row][column].isFilled ? gameManager.gameBoard[row][column].color ?? .clear : .clear)
                             .frame(width: blockSize, height: blockSize)
@@ -27,14 +29,14 @@ struct GameBoardView: View {
                     }
                 }
                 
-                ForEach(0..<gameManager.currentPiece.shape.count, id: \.self) { row in
-                    ForEach(0..<gameManager.currentPiece.shape[row].count, id: \.self) { column in
-                        if gameManager.currentPiece.shape[row][column] {
+                ForEach(0..<gameManager.currentTetromino.shape.count, id: \.self) { row in
+                    ForEach(0..<gameManager.currentTetromino.shape[row].count, id: \.self) { column in
+                        if gameManager.currentTetromino.shape[row][column] {
                             Rectangle()
-                                .fill(gameManager.currentPiece.color)
+                                .fill(gameManager.currentTetromino.color)
                                 .frame(width: blockSize, height: blockSize)
-                                .position(x: blockSize * CGFloat(column + Int(gameManager.currentPiece.position.column)) + blockSize / 2,
-                                          y: blockSize * CGFloat(row + Int(gameManager.currentPiece.position.row)) + blockSize / 2)
+                                .position(x: blockSize * CGFloat(column + Int(gameManager.currentTetromino.position.column)) + blockSize / 2,
+                                          y: blockSize * CGFloat(row + Int(gameManager.currentTetromino.position.row)) + blockSize / 2)
                         }
                     }
                 }
@@ -44,11 +46,11 @@ struct GameBoardView: View {
     }
     
     private func calculateBlockSize(from size: CGSize) -> CGFloat {
-        min(size.width / CGFloat(gameManager.columns), size.height / CGFloat(gameManager.rows))
+        min(size.width / CGFloat(columns), size.height / CGFloat(rows))
     }
     
     private func calculateBoardDimensions(blockSize: CGFloat) -> CGSize {
-        CGSize(width: blockSize * CGFloat(gameManager.columns), height: blockSize * CGFloat(gameManager.rows))
+        CGSize(width: blockSize * CGFloat(columns), height: blockSize * CGFloat(rows))
     }
 }
 

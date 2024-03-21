@@ -8,20 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject var gameManager = GameManager()
+    @State var gameManager = GameManager()
     @AppStorage("highScore") private var highScore: Int = 0
     
     var body: some View {
         VStack {
-            Text("State: \(gameManager.state)")
+            Text("Score: \(gameManager.score)")
                 .font(.headline)
             Text("High Score: \(highScore)")
                 .font(.caption)
             
             HStack {
-                TetrominoPreview(tetromino: gameManager.heldPiece)
+                TetrominoPreview(tetromino: gameManager.heldTetromino)
                 Spacer()
-                TetrominoPreview(tetromino: gameManager.nextPiece)
+                TetrominoPreview(tetromino: gameManager.nextTetromino)
             }
             
             GameBoardView(gameManager: gameManager)
@@ -29,19 +29,8 @@ struct ContentView: View {
                 .padding()
                 .background(.black.opacity(0.5))
                 .cornerRadius(10)
-            if gameManager.state == .gameOver {
-                Button("Start Game") {
-                    gameManager.startGame()
-                }
-            } else {
-                Button(gameManager.state == .playing ? "Pause" : "Start") {
-                    if gameManager.state == .playing {
-                        gameManager.handleAction(.pause)
-                    } else {
-                        gameManager.handleAction(.resume)
-                    }
-                }
-            }
+            
+            ButtonView(gameManager: gameManager)
         }
         .padding()
         .background(.teal.opacity(0.75))

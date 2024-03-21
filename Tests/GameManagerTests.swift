@@ -19,153 +19,72 @@ class GameManagerTests: XCTestCase {
         gameManager = nil
     }
     
-    func testGameInitialization() {
-        XCTAssertEqual(gameManager.rows, 20)
-        XCTAssertEqual(gameManager.columns, 10)
-        XCTAssertNotNil(gameManager.nextPiece)
-        XCTAssertNotNil(gameManager.currentPiece)
-        XCTAssertEqual(gameManager.gameBoard.count, gameManager.rows)
-        XCTAssertEqual(gameManager.gameBoard.first?.count, gameManager.columns)
-        XCTAssertEqual(gameManager.state, .gameOver)
-    }
-    
-    func testGameOver() {
-        gameManager.gameOver()
-        XCTAssertEqual(gameManager.state, .gameOver)
-    }
-    
-    func testStartGameTimer() {
-        gameManager.startGameTimer()
-        XCTAssertNotNil(gameManager.gameTimer)
-        XCTAssertTrue(gameManager.gameTimer!.isValid)
-    }
-    
-    func testStartGameTimerWithSoftDrop() {
-        gameManager.startGameTimer(withSoftDrop: true)
-        XCTAssertEqual(gameManager.gameTimer?.timeInterval, gameManager.softDropSpeed)
-    }
-    
-    func testGameBoardUpdatesWithKnownTetromino() {
+    func testStartGame() {
         gameManager.startGame()
-        let testTetromino = Tetromino(shape: [[true, true, true, true]], color: .blue, position: Position(row: 0, column: 3), rotationState: 0, rotationPoints: [], wallKickData: [])
-        gameManager.currentPiece = testTetromino
+        XCTAssertEqual(gameManager.state, .playing, "Game state should be set to .playing when the game starts.")
+        XCTAssertEqual(gameManager.score, 0, "Score should be reset to 0 at the start of a new game.")
+        XCTAssertEqual(gameManager.level, 1, "Level should be set to 1 at the start of a new game.")
+        XCTAssertTrue(isGameBoardInInitialState(gameManager.gameBoard), "Game board should be in its initial state at the start of a new game.")
         
-        gameManager.updateGameBoardWithCurrentPiece()
-        
-        let expectedPositions = testTetromino.shape.enumerated().flatMap { (y, row) -> [(Int, Int)] in
-            row.enumerated().compactMap { x, isPartOfTetromino in
-                isPartOfTetromino ? (Int(testTetromino.position.row) + y, Int(testTetromino.position.column) + x) : nil
-            }
-        }
-        
-        // Verify that each expected position on the gameBoard is filled and matches the tetromino's color.
-        for (row, col) in expectedPositions {
-            let cell = gameManager.gameBoard[row][col]
-            XCTAssertTrue(cell.isFilled, "The cell at row \(row), column \(col) should be filled.")
-            XCTAssertEqual(cell.color, testTetromino.color, "The cell at row \(row), column \(col) should have the correct color.")
-        }
+        XCTAssertNotNil(gameManager.currentTetromino, "There should be a current tetromino at the start of the game.")
+        XCTAssertNotNil(gameManager.nextTetromino, "There should be a next tetromino defined at the start of the game.")
     }
-    
-    func testMovePieceDown() {
+
+    func testHandleActionMoveLeft() {
         gameManager.startGame()
-        guard let initialRow = gameManager.currentPiece?.position.row else {
-            XCTFail("Current piece should be set after starting the game and spawning a new Tetromino")
-            return
-        }
-        gameManager.movePieceDown()
-        guard let newRow = gameManager.currentPiece?.position.row else {
-            XCTFail("Current piece should still be set after moving down")
-            return
-        }
-        XCTAssertEqual(newRow, initialRow + 1, "After moving down, the Tetromino's row should increase by 1")
+        let initialColumn = gameManager.currentTetromino.position.column
+        gameManager.handleAction(.moveLeft)
+        XCTAssertEqual(gameManager.currentTetromino.position.column, initialColumn - 1)
     }
     
-//    func testMovePieceLeftRight() {
-//        gameManager.startGame()
-//        guard let initialColumn = gameManager.currentPiece?.position.column else {
-//            XCTFail("Initial current piece should be set")
-//            return
-//        }
-//        
-//        gameManager.handleAction(.moveLeft)
-//        guard let afterLeftColumn = gameManager.currentPiece?.position.column else {
-//            XCTFail("Current piece should exist after moving left")
-//            return
-//        }
-//        XCTAssertEqual(afterLeftColumn, initialColumn - 1, "Piece should move left by 1 column")
-//        
-//        gameManager.handleAction(.moveRight)
-//        
-//        guard let afterRightColumn = gameManager.currentPiece?.position.column else {
-//            XCTFail("Current piece should exist after moving right")
-//            return
-//        }
-//        XCTAssertEqual(afterRightColumn, initialColumn, "Piece should move back to initial position after moving right")
-//    }
+    func testHandleActionMoveRight() {
+        gameManager.startGame()
+        let initialColumn = gameManager.currentTetromino.position.column
+        gameManager.handleAction(.moveRight)
+        XCTAssertEqual(gameManager.currentTetromino.position.column, initialColumn + 1)
+    }
+
+    func testHandleActionHold() {
+        gameManager.startGame()
+        let initialTetromino = gameManager.currentTetromino
+        gameManager.handleAction(.hold)
+        XCTAssertNotNil(gameManager.heldTetromino)
+        XCTAssertEqual(gameManager.heldTetromino?.id, initialTetromino.id)
+        // Further checks might be necessary depending on how hold functionality is implemented
+    }
     
-    func testPauseAndResumeGame() {
+    func testHandleActionRotate() {
+        gameManager.startGame()
+        let initialRotationState = gameManager.currentTetromino.rotationState
+        gameManager.handleAction(.rotate)
+        XCTAssertNotEqual(gameManager.currentTetromino.rotationState, initialRotationState)
+    }
+    
+    func testHandleActionDrop() {
+        // Assuming drop instantly moves the tetromino down by 1 row
+        let initialRow = gameManager.currentTetromino.position.row
+        gameManager.handleAction(.drop)
+        XCTAssertEqual(gameManager.currentTetromino.position.row, initialRow + 1)
+    }
+    
+    func testHandleActionPauseAndResume() {
         gameManager.startGame()
         gameManager.handleAction(.pause)
-        XCTAssertNil(gameManager.gameTimer)
         XCTAssertEqual(gameManager.state, .paused)
         
         gameManager.handleAction(.resume)
         XCTAssertEqual(gameManager.state, .playing)
-        XCTAssertNotNil(gameManager.gameTimer)
     }
     
-    func testTetrisPieceVisibilityWhileFalling() {
-        gameManager.startGame()
-
-         gameManager.currentPiece = Tetromino(shape: [[true, true, true, true]], color: .blue, position: Position(row: 0, column: 3), rotationState: 0, rotationPoints: [], wallKickData: [])
-        
-        guard let initialPiece = gameManager.currentPiece else {
-            XCTFail("A Tetromino should be active after starting the game.")
-            return
-        }
-        let initialPositions = expectedPositions(for: initialPiece)
-        
-        for position in initialPositions {
-            let row = Int(position.row)
-            let column = Int(position.column)
-            
-            guard row >= 0, row < gameManager.rows, column >= 0, column < gameManager.columns else {
-                XCTFail("Position (\(position.row), \(position.column)) is out of bounds.")
-                continue
+    private func isGameBoardInInitialState(_ gameBoard: [[GameCell]]) -> Bool {
+        for row in gameBoard {
+            for cell in row {
+                if cell.isFilled {
+                    return false
+                }
             }
-            
-            let cell = gameManager.gameBoard[row][column]
-            XCTAssertTrue(cell.isFilled, "Cell at (\(row), \(column)) should be filled by the initial Tetromino.")
-            XCTAssertEqual(cell.color, initialPiece.color, "Cell color at (\(row), \(column)) should match the Tetromino's color.")
         }
-        
-        gameManager.movePieceDown()
-        
-        let movedPositions = expectedPositions(for: gameManager.currentPiece!)
-        
-        for position in movedPositions {
-            let row = Int(position.row)
-            let column = Int(position.column)
-            
-            guard row >= 0, row < gameManager.rows, column >= 0, column < gameManager.columns else {
-                XCTFail("Position (\(position.row), \(position.column)) is out of bounds.")
-                continue
-            }
-            
-            let cell = gameManager.gameBoard[row][column]
-            XCTAssertTrue(cell.isFilled, "Cell at (\(row), \(column)) should be filled after moving the Tetromino down.")
-            // If comparing UIColors or similar, ensure they're comparable or convert them to a comparable format.
-            XCTAssertEqual(cell.color, gameManager.currentPiece?.color, "Cell color at (\(row), \(column)) should match the Tetromino's color after moving down.")
-        }
+        return true
     }
-    
-    private func expectedPositions(for tetromino: Tetromino) -> [Position] {
-        tetromino.shape.enumerated().flatMap { (y, row) -> [Position] in
-            row.enumerated().compactMap { x, isFilled in
-                isFilled ? Position(row: CGFloat(y) + tetromino.position.row, column: CGFloat(x) + tetromino.position.column) : nil
-            }
-        }
-    }
-
 }
 
