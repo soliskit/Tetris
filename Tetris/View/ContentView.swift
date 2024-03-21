@@ -20,6 +20,9 @@ struct ContentView: View {
             
             HStack {
                 TetrominoPreview(tetromino: gameManager.heldTetromino)
+                    .onTapGesture {
+                        gameManager.handleAction(.hold)
+                    }
                 Spacer()
                 TetrominoPreview(tetromino: gameManager.nextTetromino)
             }
@@ -29,11 +32,44 @@ struct ContentView: View {
                 .padding()
                 .background(.black.opacity(0.5))
                 .cornerRadius(10)
+                .gesture(
+                    DragGesture(minimumDistance: 20)
+                        .onEnded { gesture in
+                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                if gesture.translation.width < 0 {
+                                    gameManager.handleAction(.moveLeft)
+                                } else {
+                                    gameManager.handleAction(.moveRight)
+                                }
+                            } else {
+                                if gesture.translation.height > 0 {
+                                    gameManager.handleAction(.drop)
+                                }
+                            }
+                        }
+                )
+                .onTapGesture {
+                    gameManager.handleAction(.rotate)
+                }
             
             ButtonView(gameManager: gameManager)
         }
         .padding()
         .background(.teal.opacity(0.75))
+        .background {
+            KeyboardInputView(
+                moveLeft: { gameManager.handleAction(.moveLeft) },
+                moveRight: { gameManager.handleAction(.moveRight) },
+                rotate: { gameManager.handleAction(.rotate) },
+                drop: { gameManager.handleAction(.drop) },
+                hold: { gameManager.handleAction(.hold) }
+            )
+        }
+        .onChange(of: gameManager.state) {
+            if gameManager.score > highScore {
+                highScore = gameManager.score
+            }
+        }
     }
 }
 
