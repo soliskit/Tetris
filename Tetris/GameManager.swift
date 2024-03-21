@@ -10,6 +10,7 @@ import SwiftUI
 @Observable
 class GameManager {
     // MARK: - Properties
+    private var gameControllerManager: GameControllerManager?
     private let rows: Int = 20
     private let columns: Int = 10
     private let standardDropInterval: TimeInterval = 1.0
@@ -28,6 +29,7 @@ class GameManager {
         currentTetromino = TetrominoFactory.generate()
         nextTetromino = TetrominoFactory.generate()
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
+        gameControllerManager = GameControllerManager(gameManager: self)
     }
     
     deinit {
