@@ -86,8 +86,8 @@ class GameManager: ObservableObject {
         lockedPiece.shape.enumerated().forEach { y, row in
             row.enumerated().forEach { x, cell in
                 guard cell else { return }
-                let globalRow = Int(lockedPiece.row) + y
-                let globalCol = Int(lockedPiece.column) + x
+                let globalRow = Int(lockedPiece.position.row) + y
+                let globalCol = Int(lockedPiece.position.column) + x
                 if globalRow >= 0, globalRow < rows, globalCol >= 0, globalCol < columns {
                     gameBoard[globalRow][globalCol].isFilled = true
                     gameBoard[globalRow][globalCol].color = lockedPiece.color
@@ -177,7 +177,7 @@ class GameManager: ObservableObject {
     private func movePieceLeft() {
         guard state == .playing, var movedPiece = currentPiece else { return }
         previousPosition = movedPiece.position
-        movedPiece.column -= 1
+        movedPiece.position.column -= 1
         if isPiecePositionValid(movedPiece) {
             currentPiece = movedPiece
             updateGameBoardWithCurrentPiece()
@@ -188,7 +188,7 @@ class GameManager: ObservableObject {
     
     private func movePieceRight() {
         guard state == .playing, var movedPiece = currentPiece else { return }
-        movedPiece.column += 1
+        movedPiece.position.column += 1
         if isPiecePositionValid(movedPiece) {
             currentPiece = movedPiece
             updateGameBoardWithCurrentPiece()
@@ -215,7 +215,7 @@ class GameManager: ObservableObject {
     func rotatePiece() {
         guard state == .playing, var piece = currentPiece else { return }
         let originalPiece = piece
-        piece.rotate()
+        piece.rotate(gameBoard: gameBoard)
         if isPiecePositionValid(piece) {
             currentPiece = piece
             updateGameBoardWithCurrentPiece()
@@ -224,14 +224,7 @@ class GameManager: ObservableObject {
         }
     }
     
-    private func applyWallKick() -> Bool {
-        // Implement wall kick. This tries to move the piece into a valid position if the initial rotation is blocked.
-        // Returns true if a valid position is found, false otherwise.
-        
-        return false
-    }
-    
-     func isPiecePositionValid(_ tetromino: Tetromino) -> Bool {
+    func isPiecePositionValid(_ tetromino: Tetromino) -> Bool {
         !tetromino.shape.enumerated().contains { y, row in
             row.enumerated().contains { x, isPartOfTetromino in
                 if isPartOfTetromino {
