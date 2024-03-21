@@ -160,9 +160,7 @@ struct TetrominoFactory {
                 ]
             )
         ]
-        
-        let randomIndex = Int.random(in: 0...6)
-        let selectedShape = shapes[randomIndex]
+        let selectedShape = shapes.randomElement()
         
         return Tetromino(
             shape: selectedShape.shape,
