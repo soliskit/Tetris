@@ -71,22 +71,17 @@ struct Tetromino: Identifiable {
     }
     
     private func isWithinBoundsAndNotColliding(for newShape: [[Bool]], atRow: CGFloat, andColumn: CGFloat, gameBoard: [[GameCell]]) -> Bool {
-        for (rowIndex, row) in newShape.enumerated() {
-            for (columnIndex, isFilled) in row.enumerated() {
+        !newShape.enumerated().contains { rowIndex, row in
+            row.enumerated().contains { columnIndex, isFilled in
                 if isFilled {
                     let boardRow = Int(atRow) + rowIndex
                     let boardColumn = Int(andColumn) + columnIndex
                     
-                    if boardRow < 0 || boardRow >= 20 || boardColumn < 0 || boardColumn >= 10 {
-                        return false
-                    }
-                    
-                    if gameBoard.indices.contains(boardRow) && gameBoard[boardRow].indices.contains(boardColumn) && gameBoard[boardRow][boardColumn].isFilled {
-                        return false
-                    }
+                    return boardRow < 0 || boardRow >= 20 || boardColumn < 0 || boardColumn >= 10 ||
+                    (gameBoard.indices.contains(boardRow) && gameBoard[boardRow].indices.contains(boardColumn) && gameBoard[boardRow][boardColumn].isFilled)
                 }
+                return false
             }
         }
-        return true
     }
 }
