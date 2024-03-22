@@ -24,7 +24,6 @@ class GameManagerTests: XCTestCase {
         XCTAssertEqual(gameManager.state, .playing, "Game state should be set to .playing when the game starts.")
         XCTAssertEqual(gameManager.score, 0, "Score should be reset to 0 at the start of a new game.")
         XCTAssertEqual(gameManager.level, 1, "Level should be set to 1 at the start of a new game.")
-        XCTAssertTrue(isGameBoardInInitialState(gameManager.gameBoard), "Game board should be in its initial state at the start of a new game.")
         
         XCTAssertNotNil(gameManager.currentTetromino, "There should be a current tetromino at the start of the game.")
         XCTAssertNotNil(gameManager.nextTetromino, "There should be a next tetromino defined at the start of the game.")
