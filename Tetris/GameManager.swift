@@ -13,8 +13,8 @@ class GameManager {
     private var gameControllerManager: GameControllerManager?
     private let rows: Int = 20
     private let columns: Int = 10
-    private let standardDropInterval: TimeInterval = 1.0
-    private let quickDropInterval: TimeInterval = 0.1
+    private var standardDropInterval: TimeInterval = 0.8
+    private let quickDropInterval: TimeInterval = 0.01
     private var timer: Timer?
     var currentTetromino: Tetromino
     var nextTetromino: Tetromino
