@@ -153,7 +153,7 @@ class GameManager {
                 stopGameTimer()
             case .resume:
                 state = .playing
-                startGame()
+                startGameTimer()
         }
     }
     
