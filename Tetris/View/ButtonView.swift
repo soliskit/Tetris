@@ -29,6 +29,6 @@ struct ButtonView: View {
     }
 }
 
-#Preview {
+#Preview("Button View") {
     ButtonView(gameManager: GameManager())
 }
