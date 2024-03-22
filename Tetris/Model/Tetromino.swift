@@ -26,80 +26,54 @@ struct Tetromino: Identifiable {
     /// Wall kick data specifying how to adjust the Tetromino's position when rotating near a wall.
     var wallKickData: [[CGPoint]]
     
-    /// Rotates the Tetromino, updating its shape and position if necessary.
-    ///
-    /// - Parameters:
-    ///   - gameBoard: The current state of the game board, to check for collisions and bounds.
     mutating func rotate(gameBoard: [[GameCell]]) {
-        let previousState = rotationState
-        rotationState = (rotationState + 1) % 4
-        let newShape = rotatedShape()
+        let nextState = (rotationState + 1) % 4
+        let potentialShape = rotatedShape()
+        let kicks = wallKickData[safe: rotationState * 4 + nextState] ?? []
         
-        if isWithinBoundsAndNotColliding(for: newShape, atRow: position.row, andColumn: position.column, gameBoard: gameBoard) {
-            if !applyWallKick(from: previousState, to: rotationState, gameBoard: gameBoard) {
-                rotationState = previousState
-            } else {
-                shape = newShape
+        for kick in kicks {
+            let testPosition = Position(row: position.row + kick.y, column: position.column + kick.x)
+            if canPlaceTetromino(at: testPosition, withShape: potentialShape, on: gameBoard) {
+                position = testPosition
+                shape = potentialShape
+                rotationState = nextState
+                return
             }
-        } else {
-            shape = newShape
         }
     }
-    
-    /// Attempts to apply a wall kick to the Tetromino, shifting its position to avoid collision after a rotation.
-    ///
-    /// - Parameters:
-    ///   - previousState: The rotation state before the attempted rotation.
-    ///   - nextState: The rotation state after the attempted rotation.
-    ///   - gameBoard: The current state of the game board, to check for collisions and bounds.
-    /// - Returns: `true` if a wall kick was successfully applied, otherwise `false`.
-    private mutating func applyWallKick(from previousState: Int, to nextState: Int, gameBoard: [[GameCell]]) -> Bool {
-        let kickIndex = previousState * 4 + nextState
-        guard wallKickData.indices.contains(kickIndex) else { return false }
-        return wallKickData[kickIndex].contains { kickPosition in
-            let testRow = position.row + kickPosition.y
-            let testColumn = position.column + kickPosition.x
-            if !isWithinBoundsAndNotColliding(for: shape, atRow: testRow, andColumn: testColumn, gameBoard: gameBoard) {
-                position.row += kickPosition.y
-                position.column += kickPosition.x
-                return true
-            }
-            return false
-        }
-    }
-    
-    /// Calculates the Tetromino's shape after a rotation.
-    ///
-    /// - Returns: A 2D array representing the Tetromino's new shape.
+
     private func rotatedShape() -> [[Bool]] {
         let size = shape.count
-        return (0..<size).map { row in
-            (0..<size).map { col in
-                shape[col][size - row - 1]
+        var newShape = Array(repeating: Array(repeating: false, count: size), count: size)
+        
+        for row in 0..<size {
+            for col in 0..<size {
+                newShape[col][size - row - 1] = shape[row][col]
             }
         }
+        
+        return newShape
     }
     
-    /// Determines if a new shape for the Tetromino, at a given row and column, is within bounds and not colliding with other Tetrominos.
-    ///
-    /// - Parameters:
-    ///   - newShape: The new shape to check.
-    ///   - atRow: The row position to place the new shape.
-    ///   - andColumn: The column position to place the new shape.
-    ///   - gameBoard: The current state of the game board, to check for collisions and bounds.
-    /// - Returns: `true` if the new shape is within bounds and not colliding, otherwise `false`.
-    private func isWithinBoundsAndNotColliding(for newShape: [[Bool]], atRow: CGFloat, andColumn: CGFloat, gameBoard: [[GameCell]]) -> Bool {
-        !newShape.enumerated().contains { rowIndex, row in
-            row.enumerated().contains { columnIndex, isFilled in
-                if isFilled {
-                    let boardRow = Int(atRow) + rowIndex
-                    let boardColumn = Int(andColumn) + columnIndex
-                    
-                    return boardRow < 0 || boardRow >= 20 || boardColumn < 0 || boardColumn >= 10 ||
-                    (gameBoard.indices.contains(boardRow) && gameBoard[boardRow].indices.contains(boardColumn) && gameBoard[boardRow][boardColumn].isFilled)
+    private func canPlaceTetromino(at position: Position, withShape shape: [[Bool]], on gameBoard: [[GameCell]]) -> Bool {
+        for (rowIndex, row) in shape.enumerated() {
+            for (colIndex, block) in row.enumerated() where block {
+                let boardRow = position.row + CGFloat(rowIndex)
+                let boardColumn = position.column + CGFloat(colIndex)
+                
+                let boardRowIndex = Int(boardRow)
+                let boardColumnIndex = Int(boardColumn)
+                
+                // Use safe subscript for out-of-bounds check
+                guard let row = gameBoard[safe: boardRowIndex], let cell = row[safe: boardColumnIndex] else {
+                    return false // Out of bounds
                 }
-                return false
+                
+                if cell.isFilled {
+                    return false // Collision detected
+                }
             }
         }
+        return true // No collision and within bounds, can place Tetromino
     }
 }
