@@ -34,13 +34,35 @@ struct Tetromino: Identifiable {
     }
     
     mutating func rotate(gameBoard: [[GameCell?]]) {
-        let nextRotationState = (rotationState + 1) % rotations.count
-        let nextShape = rotations[nextRotationState]
-        let testPositions = [position] + wallKickData[rotationState].map { Position(row: position.row + $0.row, column: position.column + $0.column) }
-        if let validPosition = testPositions.first(where: { Tetromino(shape: nextShape, color: color, position: $0, rotations: rotations, wallKickData: wallKickData).fitsWithin(gameBoard: gameBoard) }) {
-            shape = nextShape
-            rotationState = nextRotationState
-            position = validPosition
+        let clockwiseRotationState = (rotationState + 1) % rotations.count
+        let clockwiseShape = rotations[clockwiseRotationState]
+        let clockwiseTestPositions = wallKickData[clockwiseRotationState].map {
+            Position(row: position.row + $0.row, column: position.column + $0.column)
+        }
+        if let validClockwisePosition = clockwiseTestPositions.first(where: {
+            Tetromino(shape: clockwiseShape, color: color, position: $0, rotations: rotations, wallKickData: wallKickData)
+                .fitsWithin(gameBoard: gameBoard)
+        }) {
+            shape = clockwiseShape
+            rotationState = clockwiseRotationState
+            position = validClockwisePosition
+            return
+        }
+        
+        let counterClockwiseRotationState = (rotationState - 1 + rotations.count) % rotations.count
+        let counterClockwiseShape = rotations[counterClockwiseRotationState]
+        let counterClockwiseTestPositions = wallKickData[counterClockwiseRotationState].map {
+            Position(row: position.row + $0.row, column: position.column + $0.column)
+        }
+        
+        for testPosition in counterClockwiseTestPositions {
+            if Tetromino(shape: counterClockwiseShape, color: color, position: testPosition, rotations: rotations, wallKickData: wallKickData)
+                .fitsWithin(gameBoard: gameBoard) {
+                shape = counterClockwiseShape
+                rotationState = counterClockwiseRotationState
+                position = testPosition
+                break
+            }
         }
     }
 }
