@@ -157,9 +157,11 @@ class GameManager {
             case .drop:
                 dropTetromino(isSoftDropping: true)
             case .pause:
-                togglePauseResume()
+                state = .paused
+                stopGameTimer()
             case .resume:
-                togglePauseResume()
+                state = .playing
+                startGame()
         }
     }
     
