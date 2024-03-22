@@ -87,10 +87,6 @@ class GameManager {
                 guard block else { return }
                 let boardX = Int(currentTetromino.position.column) + x
                 let boardY = Int(currentTetromino.position.row) + y
-                guard currentTetromino.fitsWithin(gameBoard: gameBoard) else {
-                    print("The piece would exceed the boundaries")
-                    return
-                }
                 gameBoard[boardY][boardX]?.isFilled = true
                 gameBoard[boardY][boardX]?.color = currentTetromino.color
             }
