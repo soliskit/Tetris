@@ -13,7 +13,7 @@ class GameManager {
     private var gameControllerManager: GameControllerManager?
     private let rows: Int = 20
     private let columns: Int = 10
-    private var standardDropInterval: TimeInterval = 0.8
+    private var standardDropInterval: TimeInterval = 0.6
     private let quickDropInterval: TimeInterval = 0.01
     private var timer: Timer?
     var currentTetromino: Tetromino
@@ -110,7 +110,7 @@ class GameManager {
         gameBoard.insert(contentsOf: newLines, at: 0)
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
-        standardDropInterval = Double(level) * 1.0
+        standardDropInterval = max(0.1, 1.0 * pow(0.9, Double(level)))
     }
     
     private func isValidTetrominoPosition(tetromino: Tetromino, at position: Position) -> Bool {
