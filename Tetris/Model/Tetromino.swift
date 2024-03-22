@@ -26,8 +26,30 @@ struct Tetromino: Identifiable {
         self.rotationState = rotationState
     }
     
-    mutating func rotate() {
-        rotationState = (rotationState + 1) % rotations.count
-        shape = rotations[rotationState]
+    mutating func rotate(gameBoard: [[GameCell]]) {
+        let nextRotationState = (rotationState + 1) % rotations.count
+        let nextShape = rotations[nextRotationState]
+        let activeBlocks = nextShape
+            .enumerated()
+            .flatMap { y, row in
+                row.enumerated().map { x, block -> (x: Int, y: Int, block: Bool) in
+                    (x: x + Int(position.column), y: y + Int(position.row), block: block)
+                }
+            }
+            .filter { $0.block }
+        let isValid = activeBlocks.allSatisfy { coordinate in
+            let (x, y, _) = coordinate
+            if let gameCell = gameBoard[safe: y]?[safe: x] {
+                return !gameCell.isFilled
+            } else {
+                return false
+            }
+        }
+        
+        if isValid {
+            rotationState = nextRotationState
+            shape = nextShape
+        }
     }
+
 }
