@@ -11,8 +11,10 @@ struct GameControlButtonStyle: ButtonStyle {
     
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
-            .background(.gray.opacity(configuration.isPressed ? 0.5 : 0.2))
+            .padding()
+            .background(configuration.isPressed ? .indigo.opacity(0.5) : .indigo)
             .foregroundColor(.white)
-            .clipShape(Circle())
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .font(.headline)
     }
 }
