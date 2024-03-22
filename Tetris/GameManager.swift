@@ -59,7 +59,7 @@ class GameManager {
     private func generateNextTetromino() {
         currentTetromino = nextTetromino
         nextTetromino = TetrominoFactory.generate()
-        if !isValidTetrominoPosition(shape: currentTetromino.shape, at: currentTetromino.position) {
+        if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
             gameOver()
         }
     }
@@ -67,7 +67,7 @@ class GameManager {
     private func dropTetromino(isSoftDropping: Bool = false) {
         guard state == .playing else { return }
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
-        if isValidTetrominoPosition(shape: currentTetromino.shape, at: newPosition) {
+        if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
         } else {
             lockTetrominoInPlace()
@@ -87,8 +87,9 @@ class GameManager {
                 guard block else { return }
                 let boardX = Int(currentTetromino.position.column) + x
                 let boardY = Int(currentTetromino.position.row) + y
-                guard boardX >= 0, boardX < columns, boardY >= 0, boardY < rows else {
-                    fatalError("The piece would exceed the boundaries")
+                guard currentTetromino.fitsWithin(gameBoard: gameBoard) else {
+                    print("The piece would exceed the boundaries")
+                    return
                 }
                 gameBoard[boardY][boardX]?.isFilled = true
                 gameBoard[boardY][boardX]?.color = currentTetromino.color
@@ -113,18 +114,9 @@ class GameManager {
         standardDropInterval = Double(level) * 1.0
     }
     
-    private func isValidTetrominoPosition(shape: [[Bool]], at position: Position) -> Bool {
-        !shape.enumerated().contains { rowIndex, row in
-            row.enumerated().contains { colIndex, cell in
-                guard cell else { return false }
-                let gameBoardX = Int(position.column) + colIndex
-                let gameBoardY = Int(position.row) + rowIndex
-                
-                return gameBoardX < 0 || gameBoardX >= columns ||
-                gameBoardY < 0 || gameBoardY >= rows ||
-                (gameBoardY < gameBoard.count && gameBoardX < gameBoard[gameBoardY].count && gameBoard[gameBoardY][gameBoardX]?.isFilled ?? false)
-            }
-        }
+    private func isValidTetrominoPosition(tetromino: Tetromino, at position: Position) -> Bool {
+        let newTetromino = Tetromino(shape: tetromino.shape, color: tetromino.color, position: position, rotations: tetromino.rotations, wallKickData: tetromino.wallKickData)
+        return newTetromino.fitsWithin(gameBoard: gameBoard)
     }
     
     // MARK: - Timer Management
@@ -170,7 +162,7 @@ class GameManager {
     private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
         let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + CGFloat(deltaX))
-        if isValidTetrominoPosition(shape: currentTetromino.shape, at: newPosition) {
+        if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
         }
     }
@@ -182,7 +174,7 @@ class GameManager {
             heldTetromino = currentTetromino
             currentTetromino = tetrominoToSwap
             currentTetromino.position = previousPosition
-            if !isValidTetrominoPosition(shape: currentTetromino.shape, at: currentTetromino.position) {
+            if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
                 let temp = currentTetromino
                 currentTetromino = heldTetromino!
                 heldTetromino = temp

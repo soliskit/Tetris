@@ -37,19 +37,10 @@ struct Tetromino: Identifiable {
         let nextRotationState = (rotationState + 1) % rotations.count
         let nextShape = rotations[nextRotationState]
         let testPositions = [position] + wallKickData[rotationState].map { Position(row: position.row + $0.row, column: position.column + $0.column) }
-        if let validPosition = testPositions.first(where: { checkIfValidPosition(for: nextShape, at: $0, on: gameBoard) }) {
+        if let validPosition = testPositions.first(where: { Tetromino(shape: nextShape, color: color, position: $0, rotations: rotations, wallKickData: wallKickData).fitsWithin(gameBoard: gameBoard) }) {
             shape = nextShape
             rotationState = nextRotationState
             position = validPosition
-        }
-    }
-    
-    private func checkIfValidPosition(for shape: [[Bool]], at position: Position, on gameBoard: [[GameCell?]]) -> Bool {
-        return !shape.enumerated().contains { y, row in
-            row.enumerated().contains { x, block in
-                guard block else { return false }
-                return !fitsWithin(gameBoard: gameBoard)
-            }
         }
     }
 }
