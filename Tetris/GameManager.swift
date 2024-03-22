@@ -98,6 +98,7 @@ class GameManager {
     
     // MARK: - Board Management
     private func clearFullRows() {
+        let scores = [1: 100, 2: 300, 3: 500, 4: 800]
         let completedLineIndices = gameBoard.indices.filter { row in
             gameBoard[row].allSatisfy { $0?.isFilled ?? false }
         }
@@ -107,6 +108,7 @@ class GameManager {
         }
         let newLines = Array(repeating: Array(repeating: GameCell(isFilled: false, color: nil), count: columns), count: completedLineIndices.count)
         gameBoard.insert(contentsOf: newLines, at: 0)
+        score = scores[completedLineIndices.count] ?? 0
     }
     
     private func isValidTetrominoPosition(shape: [[Bool]], at position: Position) -> Bool {
