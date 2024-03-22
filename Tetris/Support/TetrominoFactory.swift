@@ -24,17 +24,11 @@ struct TetrominoFactory {
                 ],
                 color: Color.cyan,
                 position: Position(row: 0, column: 3),
-                rotationPoints: [
-                    [[-1, 1], [0, 1], [1, 1], [2, 1]],
-                    [[1, -1], [1, 0], [1, 1], [1, 2]],
-                    [[-1, 1], [0, 1], [1, 1], [2, 1]],
-                    [[1, -1], [1, 0], [1, 1], [1, 2]]
-                ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: -1), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: -1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 1), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 1)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 1), CGPoint(x: 1, y: -2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: -1), CGPoint(x: -1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: -1)]
                 ]
             ),
             // O Shape
@@ -42,7 +36,6 @@ struct TetrominoFactory {
                 shape: [[true, true], [true, true]],
                 color: Color.yellow,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [[[0, 0]]],
                 wallKickData: [[CGPoint.zero]]
             ),
             // T Shape
@@ -54,12 +47,6 @@ struct TetrominoFactory {
                 ],
                 color: Color.purple,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [
-                    [[1, 0], [0, 1], [1, 1], [2, 1]],
-                    [[1, 0], [1, 1], [1, 2], [2, 1]],
-                    [[0, 1], [1, 1], [2, 1], [1, 2]],
-                    [[1, 0], [0, 1], [1, 1], [1, 2]]
-                ],
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
@@ -76,12 +63,6 @@ struct TetrominoFactory {
                 ],
                 color: Color.green,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [
-                    [[1, 0], [1, 1], [2, 1], [2, 2]],
-                    [[2, 1], [1, 1], [1, 2], [0, 2]],
-                    [[1, 0], [1, 1], [2, 1], [2, 2]],
-                    [[2, 1], [1, 1], [1, 2], [0, 2]]
-                ],
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
@@ -98,12 +79,6 @@ struct TetrominoFactory {
                 ],
                 color: Color.red,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [
-                    [[0, 0], [0, 1], [1, 1], [1, 2]],
-                    [[2, 0], [1, 0], [1, 1], [0, 1]],
-                    [[0, 0], [0, 1], [1, 1], [1, 2]],
-                    [[2, 0], [1, 0], [1, 1], [0, 1]]
-                ],
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
@@ -120,12 +95,6 @@ struct TetrominoFactory {
                 ],
                 color: Color.blue,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [
-                    [[0, 0], [1, 0], [1, 1], [1, 2]],
-                    [[0, 1], [0, 2], [1, 1], [2, 1]],
-                    [[1, 0], [1, 1], [1, 2], [2, 2]],
-                    [[0, 1], [1, 1], [2, 0], [2, 1]]
-                ],
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
@@ -142,12 +111,6 @@ struct TetrominoFactory {
                 ],
                 color: Color.orange,
                 position: Position(row: 0, column: 4),
-                rotationPoints: [
-                    [[0, 1], [1, 0], [1, 1], [1, 2]],
-                    [[0, 1], [1, 2], [1, 1], [2, 1]],
-                    [[1, 2], [2, 1], [1, 1], [1, 0]],
-                    [[2, 1], [1, 0], [1, 1], [0, 1]]
-                ],
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
@@ -164,7 +127,6 @@ struct TetrominoFactory {
             shape: selectedShape.shape,
             color: selectedShape.color,
             position: selectedShape.position,
-            rotationPoints: selectedShape.rotationPoints,
             wallKickData: selectedShape.wallKickData
         )
     }

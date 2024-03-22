@@ -21,34 +21,64 @@ struct Tetromino: Identifiable {
     var position: Position
     /// The current rotation state of the Tetromino. Used to handle the Tetromino's orientation.
     var rotationState: Int = 0
-    /// A collection of points defining the Tetromino's shape at each rotation state.
-    var rotationPoints: [[[Int]]]
     /// Wall kick data specifying how to adjust the Tetromino's position when rotating near a wall.
     var wallKickData: [[CGPoint]]
     
     mutating func rotate(gameBoard: [[GameCell]]) {
         let nextState = (rotationState + 1) % 4
-        let potentialShape = rotatedShape()
-        let kicks = wallKickData[safe: rotationState * 4 + nextState] ?? []
+        let potentialShape = calculateShapeForRotationState(nextState)
+        applyWallKicksForRotation(to: nextState, with: potentialShape, on: gameBoard)
+    }
+    
+    private mutating func applyWallKicksForRotation(to nextState: Int, with potentialShape: [[Bool]], on gameBoard: [[GameCell]]) {
+        if canPlaceTetromino(at: position, withShape: potentialShape, on: gameBoard) {
+            updateTetrominoState(to: nextState, withShape: potentialShape)
+            return
+        }
         
+        let kicks = wallKickData[safe: rotationState * 4 + nextState] ?? []
         for kick in kicks {
             let testPosition = Position(row: position.row + kick.y, column: position.column + kick.x)
             if canPlaceTetromino(at: testPosition, withShape: potentialShape, on: gameBoard) {
-                position = testPosition
-                shape = potentialShape
-                rotationState = nextState
+                updateTetrominoState(to: nextState, withShape: potentialShape, at: testPosition)
                 return
             }
         }
     }
-
-    private func rotatedShape() -> [[Bool]] {
+    
+    private mutating func updateTetrominoState(to state: Int, withShape shape: [[Bool]], at position: Position? = nil) {
+        self.rotationState = state
+        self.shape = shape
+        if let newPosition = position {
+            self.position = newPosition
+        }
+    }
+    
+    private func calculateShapeForRotationState(_ state: Int) -> [[Bool]] {
         let size = shape.count
         var newShape = Array(repeating: Array(repeating: false, count: size), count: size)
         
         for row in 0..<size {
             for col in 0..<size {
-                newShape[col][size - row - 1] = shape[row][col]
+                let newRow: Int
+                let newCol: Int
+                switch state {
+                    case 1:
+                        newRow = col
+                        newCol = size - row - 1
+                    case 2:
+                        newRow = size - row - 1
+                        newCol = size - col - 1
+                    case 3:
+                        newRow = size - col - 1
+                        newCol = row
+                    default:
+                        newRow = row
+                        newCol = col
+                }
+                if shape.indices.contains(row) && shape[row].indices.contains(col), shape[row][col] {
+                    newShape[newRow][newCol] = true
+                }
             }
         }
         
@@ -64,16 +94,15 @@ struct Tetromino: Identifiable {
                 let boardRowIndex = Int(boardRow)
                 let boardColumnIndex = Int(boardColumn)
                 
-                // Use safe subscript for out-of-bounds check
                 guard let row = gameBoard[safe: boardRowIndex], let cell = row[safe: boardColumnIndex] else {
-                    return false // Out of bounds
+                    return false
                 }
                 
                 if cell.isFilled {
-                    return false // Collision detected
+                    return false
                 }
             }
         }
-        return true // No collision and within bounds, can place Tetromino
+        return true
     }
 }
