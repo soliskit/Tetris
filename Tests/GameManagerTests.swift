@@ -10,13 +10,16 @@ import XCTest
 
 class GameManagerTests: XCTestCase {
     var gameManager: GameManager!
+    var gameBoard: [[GameCell?]]!
     
     override func setUpWithError() throws {
         gameManager = GameManager()
+        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
     
     override func tearDownWithError() throws {
         gameManager = nil
+        gameBoard = nil
     }
     
     func testStartGame() {
@@ -53,14 +56,25 @@ class GameManagerTests: XCTestCase {
     }
     
     func testHandleActionRotate() {
+        let originalTetromino = gameManager.currentTetromino
+        guard let originalBoard = gameBoard else { fatalError("gameBoard failed to initialize") }
         gameManager.startGame()
-        let initialRotationState = gameManager.currentTetromino.rotationState
+        
         gameManager.handleAction(.rotate)
-        XCTAssertNotEqual(gameManager.currentTetromino.rotationState, initialRotationState)
+        
+        let rotatedTetromino = gameManager.currentTetromino
+        XCTAssertNotEqual(originalTetromino.shape, rotatedTetromino.shape, "The tetromino shape should change after rotation.")
+        XCTAssertEqual(originalTetromino.position, rotatedTetromino.position, "The tetromino position should not change after rotation.")
+        
+        XCTAssertTrue(isGameBoardInInitialState(gameBoard), "The game board should be in its initial state.")
+        
+        XCTAssertTrue(verifyTetrominoPlacement(rotatedTetromino, on: gameBoard), "The tetromino should be placed correctly on the game board.")
+        
+        XCTAssertTrue(verifyNoUnintendedGameBoardChanges(originalBoard, gameBoard, excludingTetromino: rotatedTetromino), "There should be no unintended changes on the game board.")
     }
     
     func testHandleActionDrop() {
-        // Assuming drop instantly moves the tetromino down by 1 row
+        gameManager.startGame()
         let initialRow = gameManager.currentTetromino.position.row
         gameManager.handleAction(.drop)
         XCTAssertEqual(gameManager.currentTetromino.position.row, initialRow + 1)
@@ -75,15 +89,31 @@ class GameManagerTests: XCTestCase {
         XCTAssertEqual(gameManager.state, .playing)
     }
     
-    private func isGameBoardInInitialState(_ gameBoard: [[GameCell]]) -> Bool {
+    private func isGameBoardInInitialState(_ gameBoard: [[GameCell?]]) -> Bool {
         for row in gameBoard {
             for cell in row {
-                if cell.isFilled {
+                if cell?.isFilled == true {
                     return false
                 }
             }
         }
         return true
     }
-}
+    
+    private func verifyTetrominoPlacement(_ tetromino: Tetromino, on gameBoard: [[GameCell?]]) -> Bool {
+        return !tetromino.shape.enumerated().contains { y, row in
+            row.enumerated().contains { x, isFilled in
+                guard isFilled else { return false }
+                return !tetromino.fitsWithin(gameBoard: gameBoard)
+            }
+        }
+    }
 
+    private func verifyNoUnintendedGameBoardChanges(_ originalBoard: [[GameCell?]], _ newBoard: [[GameCell?]], excludingTetromino tetromino: Tetromino) -> Bool {
+        return newBoard.indices.first(where: { y in
+            newBoard[y].indices.first(where: { x in
+                !tetromino.fitsWithin(gameBoard: newBoard) && originalBoard[y][x]?.isFilled != newBoard[y][x]?.isFilled
+            }) != nil
+        }) == nil
+    }
+}

@@ -196,14 +196,7 @@ class GameManager {
     
     private func rotateTetromino() {
         guard state == .playing else { return }
-        let nextRotationState = (currentTetromino.rotationState + 1) % currentTetromino.rotations.count
-        let simulatedShape = currentTetromino.rotations[nextRotationState]
-        if isValidTetrominoPosition(shape: simulatedShape, at: currentTetromino.position) {
-            currentTetromino.rotationState = nextRotationState
-            currentTetromino.shape = simulatedShape
-        } else {
-            // Rotation is invalid, handle accordingly (e.g., try wall kicks or block rotation)
-        }
+        currentTetromino.rotate(gameBoard: gameBoard)
     }
     
     private func togglePauseResume() {

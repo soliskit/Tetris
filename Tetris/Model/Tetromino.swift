@@ -16,27 +16,27 @@ struct Tetromino: Identifiable {
     var color: Color
     var position: Position
     var rotations: [[[Bool]]]
-    var rotationState: Int
+    var rotationState: Int = 0
+    var wallKickData: [[Position]]
     
-    init(shape: [[Bool]], color: Color, position: Position, rotations: [[[Bool]]], rotationState: Int = 0) {
-        self.shape = shape
-        self.color = color
-        self.position = position
-        self.rotations = rotations
-        self.rotationState = rotationState
+    func fitsWithin(gameBoard: [[GameCell?]]) -> Bool {
+        return !shape.enumerated().contains { rowIndex, row in
+            row.enumerated().contains { columnIndex, block in
+                guard block else { return false }
+                let boardX = Int(position.column) + columnIndex
+                let boardY = Int(position.row) + rowIndex
+                guard gameBoard.indices.contains(boardY), gameBoard[boardY].indices.contains(boardX) else {
+                    return true
+                }
+                return gameBoard[boardY][boardX]?.isFilled == true
+            }
+        }
     }
     
-    mutating func rotate(gameBoard: [[GameCell]]) {
+    mutating func rotate(gameBoard: [[GameCell?]]) {
         let nextRotationState = (rotationState + 1) % rotations.count
         let nextShape = rotations[nextRotationState]
-        let testPositions = [
-            Position(row: position.row, column: position.column),
-            Position(row: position.row, column: position.column - 1),
-            Position(row: position.row, column: position.column + 1),
-            Position(row: position.row - 1, column: position.column),
-            Position(row: position.row + 1, column: position.column)
-        ]
-        
+        let testPositions = [position] + wallKickData[rotationState].map { Position(row: position.row + $0.row, column: position.column + $0.column) }
         if let validPosition = testPositions.first(where: { checkIfValidPosition(for: nextShape, at: $0, on: gameBoard) }) {
             shape = nextShape
             rotationState = nextRotationState
@@ -44,22 +44,12 @@ struct Tetromino: Identifiable {
         }
     }
     
-    private func checkIfValidPosition(for shape: [[Bool]], at position: Position, on gameBoard: [[GameCell]]) -> Bool {
-        for (y, row) in shape.enumerated() {
-            for (x, block) in row.enumerated() where block {
-                let gameBoardX = Int(position.column) + x
-                let gameBoardY = Int(position.row) + y
-                
-                guard gameBoard.indices.contains(gameBoardY),
-                      gameBoard[gameBoardY].indices.contains(gameBoardX) else {
-                    return false
-                }
-                
-                if gameBoard[gameBoardY][gameBoardX].isFilled {
-                    return false
-                }
+    private func checkIfValidPosition(for shape: [[Bool]], at position: Position, on gameBoard: [[GameCell?]]) -> Bool {
+        return !shape.enumerated().contains { y, row in
+            row.enumerated().contains { x, block in
+                guard block else { return false }
+                return !fitsWithin(gameBoard: gameBoard)
             }
         }
-        return true
     }
 }
