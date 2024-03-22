@@ -25,10 +25,10 @@ struct Tetromino: Identifiable {
                 guard block else { return false }
                 let boardX = Int(position.column) + columnIndex
                 let boardY = Int(position.row) + rowIndex
-                guard gameBoard.indices.contains(boardY), gameBoard[boardY].indices.contains(boardX) else {
-                    return true
+                if let gameBoardRow = gameBoard[safe: boardY], let gameBoardCell = gameBoardRow[safe: boardX] {
+                    return gameBoardCell?.isFilled == true
                 }
-                return gameBoard[boardY][boardX]?.isFilled == true
+                return true
             }
         }
     }

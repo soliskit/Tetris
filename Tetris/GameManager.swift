@@ -87,8 +87,9 @@ class GameManager {
                 guard block else { return }
                 let boardX = Int(currentTetromino.position.column) + x
                 let boardY = Int(currentTetromino.position.row) + y
-                gameBoard[boardY][boardX]?.isFilled = true
-                gameBoard[boardY][boardX]?.color = currentTetromino.color
+                if let _ = gameBoard[safe: boardY], let _ = gameBoard[safe: boardX] {
+                    gameBoard[boardY][boardX] = GameCell(isFilled: true, color: currentTetromino.color)
+                }
             }
         }
     }
@@ -166,11 +167,10 @@ class GameManager {
     private func holdTetromino() {
         guard state == .playing else { return }
         let previousPosition = currentTetromino.position
-        if var tetrominoToSwap = heldTetromino {
-            swap(&currentTetromino, &tetrominoToSwap)
-            currentTetromino.position = previousPosition
-            if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
-                swap(&currentTetromino, &tetrominoToSwap)
+        if let tetrominoToSwap = heldTetromino {
+            if isValidTetrominoPosition(tetromino: currentTetromino, at: previousPosition) {
+                heldTetromino = currentTetromino
+                currentTetromino = tetrominoToSwap
                 currentTetromino.position = previousPosition
             }
         } else {
