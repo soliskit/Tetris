@@ -121,9 +121,11 @@ class GameManager {
         
         return activeBlocks.allSatisfy { coordinate in
             let (x, y, _) = coordinate
-            let isInBounds = x >= 0 && x < columns && y >= 0 && y < rows
-            let noOverlap = gameBoard.indices.contains(y) && gameBoard[y].indices.contains(x) && !gameBoard[y][x].isFilled
-            return isInBounds && noOverlap
+            if let gameCell = gameBoard[safe: y]?[safe: x] {
+                return !gameCell.isFilled
+            } else {
+                return false
+            }
         }
     }
     
