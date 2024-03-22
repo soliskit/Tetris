@@ -19,6 +19,7 @@ class GameManager {
     var currentTetromino: Tetromino
     var nextTetromino: Tetromino
     var heldTetromino: Tetromino?
+    var canHoldTetromino: Bool = true
     var gameBoard: [[GameCell?]]
     var state: GameState = .gameOver
     var score: Int = 0
@@ -59,6 +60,7 @@ class GameManager {
     private func generateNextTetromino() {
         currentTetromino = nextTetromino
         nextTetromino = TetrominoFactory.generate()
+        canHoldTetromino = true
         if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
             gameOver()
         }
@@ -165,17 +167,17 @@ class GameManager {
     }
     
     private func holdTetromino() {
-        guard state == .playing else { return }
+        guard state == .playing, canHoldTetromino else { return }
         let previousPosition = currentTetromino.position
-        if let tetrominoToSwap = heldTetromino {
-            if isValidTetrominoPosition(tetromino: currentTetromino, at: previousPosition) {
-                heldTetromino = currentTetromino
-                currentTetromino = tetrominoToSwap
-                currentTetromino.position = previousPosition
-            }
-        } else {
+        if let tetrominoToSwap = heldTetromino, isValidTetrominoPosition(tetromino: tetrominoToSwap, at: previousPosition) {
+            heldTetromino = currentTetromino
+            currentTetromino = tetrominoToSwap
+            currentTetromino.position = previousPosition
+            canHoldTetromino = false
+        } else if heldTetromino == nil {
             heldTetromino = currentTetromino
             generateNextTetromino()
+            canHoldTetromino = false
         }
     }
     
