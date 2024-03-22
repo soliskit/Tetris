@@ -7,11 +7,8 @@
 
 import SwiftUI
 
-/// Factory responsible for generating Tetromino instances with predefined shapes and properties.
 struct TetrominoFactory {
     
-    /// Generates a random Tetromino with predefined shapes, colors, rotation points, and wall kick data.
-    /// - Returns: A `Tetromino` instance with randomized shape and initial properties.
     static func generate() -> Tetromino {
         let shapes = [
             // I Shape

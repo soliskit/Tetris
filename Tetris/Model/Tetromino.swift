@@ -19,7 +19,7 @@ struct Tetromino: Identifiable {
     var rotationState: Int
     
     init(shape: [[Bool]], color: Color, position: Position, rotations: [[[Bool]]], rotationState: Int = 0) {
-        self.shape = rotations[0]
+        self.shape = shape
         self.color = color
         self.position = position
         self.rotations = rotations

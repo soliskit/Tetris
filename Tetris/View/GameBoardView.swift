@@ -11,7 +11,7 @@ struct GameBoardView: View {
     private let rows: Int = 20
     private let columns: Int = 10
     var gameManager: GameManager
-    
+        
     var body: some View {
         GeometryReader { geometry in
             let blockSize = calculateBlockSize(from: geometry.size)
@@ -24,30 +24,32 @@ struct GameBoardView: View {
                     ForEach(0..<columns, id: \.self) { column in
                         let cell = gameManager.gameBoard[row][column]
                         Rectangle()
-                            .fill(cell.isFilled ? cell.color ?? .clear : .clear)
+                            .fill(cell?.isFilled ?? false ? cell?.color ?? .clear : .clear)
                             .frame(width: blockSize, height: blockSize)
                             .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
                     }
                 }
                 
                 ForEach(0..<gameManager.currentTetromino.shape.count, id: \.self) { row in
-                    ForEach(0..<gameManager.currentTetromino.shape[row].count, id: \.self) { column in
-                        if gameManager.currentTetromino.shape[row][column] {
-                            let tetrominoColumn = CGFloat(column) + gameManager.currentTetromino.position.column
-                            let tetrominoRow = CGFloat(row) + gameManager.currentTetromino.position.row
-                            
-                            if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
-                                Rectangle()
-                                    .fill(gameManager.currentTetromino.color)
-                                    .frame(width: blockSize, height: blockSize)
-                                    .position(x: blockSize * tetrominoColumn + blockSize / 2,
-                                              y: blockSize * tetrominoRow + blockSize / 2)
+                    if let currentRow = gameManager.currentTetromino.shape[safe: row] {
+                        ForEach(0..<currentRow.count, id: \.self) { column in
+                            if let cell = currentRow[safe: column], cell {
+                                let tetrominoColumn = CGFloat(column) + gameManager.currentTetromino.position.column
+                                let tetrominoRow = CGFloat(row) + gameManager.currentTetromino.position.row
+                                
+                                if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
+                                    Rectangle()
+                                        .fill(gameManager.currentTetromino.color)
+                                        .frame(width: blockSize, height: blockSize)
+                                        .position(x: blockSize * tetrominoColumn + blockSize / 2,
+                                                  y: blockSize * tetrominoRow + blockSize / 2)
+                                }
                             }
                         }
                     }
                 }
+                .frame(width: boardDimensions.width, height: boardDimensions.height)
             }
-            .frame(width: boardDimensions.width, height: boardDimensions.height)
         }
     }
     

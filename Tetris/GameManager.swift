@@ -19,7 +19,7 @@ class GameManager {
     var currentTetromino: Tetromino
     var nextTetromino: Tetromino
     var heldTetromino: Tetromino?
-    var gameBoard: [[GameCell]]
+    var gameBoard: [[GameCell?]]
     var state: GameState = .gameOver
     var score: Int = 0
     var level: Int = 1
@@ -90,8 +90,8 @@ class GameManager {
                 guard boardX >= 0, boardX < columns, boardY >= 0, boardY < rows else {
                     fatalError("The piece would exceed the boundaries")
                 }
-                gameBoard[boardY][boardX].isFilled = true
-                gameBoard[boardY][boardX].color = currentTetromino.color
+                gameBoard[boardY][boardX]?.isFilled = true
+                gameBoard[boardY][boardX]?.color = currentTetromino.color
             }
         }
     }
@@ -99,7 +99,7 @@ class GameManager {
     // MARK: - Board Management
     private func clearFullRows() {
         let completedLineIndices = gameBoard.indices.filter { row in
-            gameBoard[row].allSatisfy { $0.isFilled }
+            gameBoard[row].allSatisfy { $0?.isFilled ?? false }
         }
         guard !completedLineIndices.isEmpty else { return }
         completedLineIndices.reversed().forEach { index in
@@ -118,7 +118,7 @@ class GameManager {
                 
                 return gameBoardX < 0 || gameBoardX >= columns ||
                 gameBoardY < 0 || gameBoardY >= rows ||
-                (gameBoardY < gameBoard.count && gameBoardX < gameBoard[gameBoardY].count && gameBoard[gameBoardY][gameBoardX].isFilled)
+                (gameBoardY < gameBoard.count && gameBoardX < gameBoard[gameBoardY].count && gameBoard[gameBoardY][gameBoardX]?.isFilled ?? false)
             }
         }
     }
