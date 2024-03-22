@@ -65,6 +65,7 @@ class GameManager {
     }
     
     private func dropTetromino(isSoftDropping: Bool = false) {
+        guard state == .playing else { return }
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
         if isValidTetrominoPosition(shape: currentTetromino.shape, at: newPosition) {
             currentTetromino.position = newPosition

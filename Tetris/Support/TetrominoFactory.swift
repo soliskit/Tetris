@@ -23,20 +23,10 @@ struct TetrominoFactory {
                     [false, false, false, false]
                 ],
                 color: Color.cyan,
-                position: Position(row: 0, column: 4),
+                position: Position(row: 0, column: 3),
                 rotations: [
-                    [
-                        [false, false, false, false],
-                        [false, false, false, false],
-                        [true, true, true, true],
-                        [false, false, false, false]
-                    ],
-                    [
-                        [false, false, true, false],
-                        [false, false, true, false],
-                        [false, false, true, false],
-                        [false, false, true, false]
-                    ]
+                    [[false, false, false, false], [false, false, false, false], [true, true, true, true], [false, false, false, false]],
+                    [[false, false, true, false], [false, false, true, false], [false, false, true, false], [false, false, true, false]]
                 ]
             ),
             // O Shape

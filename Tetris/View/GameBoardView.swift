@@ -32,14 +32,17 @@ struct GameBoardView: View {
                 
                 ForEach(0..<gameManager.currentTetromino.shape.count, id: \.self) { row in
                     ForEach(0..<gameManager.currentTetromino.shape[row].count, id: \.self) { column in
-                        if gameManager.currentTetromino.shape[row][column],
-                           let colOffset = CGFloat(exactly: column),
-                            let rowOffset = CGFloat(exactly: row) {
-                            Rectangle()
-                                .fill(gameManager.currentTetromino.color)
-                                .frame(width: blockSize, height: blockSize)
-                                .position(x: blockSize * (colOffset + gameManager.currentTetromino.position.column) + blockSize / 2,
-                                          y: blockSize * (rowOffset + gameManager.currentTetromino.position.row) + blockSize / 2)
+                        if gameManager.currentTetromino.shape[row][column] {
+                            let tetrominoColumn = CGFloat(column) + gameManager.currentTetromino.position.column
+                            let tetrominoRow = CGFloat(row) + gameManager.currentTetromino.position.row
+                            
+                            if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
+                                Rectangle()
+                                    .fill(gameManager.currentTetromino.color)
+                                    .frame(width: blockSize, height: blockSize)
+                                    .position(x: blockSize * tetrominoColumn + blockSize / 2,
+                                              y: blockSize * tetrominoRow + blockSize / 2)
+                            }
                         }
                     }
                 }
