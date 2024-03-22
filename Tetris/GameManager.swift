@@ -108,7 +108,9 @@ class GameManager {
         }
         let newLines = Array(repeating: Array(repeating: GameCell(isFilled: false, color: nil), count: columns), count: completedLineIndices.count)
         gameBoard.insert(contentsOf: newLines, at: 0)
-        score = scores[completedLineIndices.count] ?? 0
+        score += scores[completedLineIndices.count]!
+        level = score / 1000 + 1
+        standardDropInterval = Double(level) * 1.0
     }
     
     private func isValidTetrominoPosition(shape: [[Bool]], at position: Position) -> Bool {
