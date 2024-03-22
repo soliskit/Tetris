@@ -177,13 +177,16 @@ class GameManager {
     
     private func holdTetromino() {
         guard state == .playing else { return }
+        let previousPosition = currentTetromino.position
         if let tetrominoToSwap = heldTetromino {
-            let previousPosition = currentTetromino.position
             heldTetromino = currentTetromino
             currentTetromino = tetrominoToSwap
             currentTetromino.position = previousPosition
             if !isValidTetrominoPosition(shape: currentTetromino.shape, at: currentTetromino.position) {
-                gameOver()
+                let temp = currentTetromino
+                currentTetromino = heldTetromino!
+                heldTetromino = temp
+                currentTetromino.position = previousPosition
             }
         } else {
             heldTetromino = currentTetromino
