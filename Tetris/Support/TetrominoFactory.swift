@@ -18,8 +18,8 @@ struct TetrominoFactory {
             (
                 shape: [
                     [false, false, false, false],
-                    [true, true, true, true],
                     [false, false, false, false],
+                    [true, true, true, true],
                     [false, false, false, false]
                 ],
                 color: Color.cyan,
@@ -27,8 +27,8 @@ struct TetrominoFactory {
                 rotations: [
                     [
                         [false, false, false, false],
-                        [true, true, true, true],
                         [false, false, false, false],
+                        [true, true, true, true],
                         [false, false, false, false]
                     ],
                     [
@@ -58,10 +58,10 @@ struct TetrominoFactory {
                 color: Color.purple,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, true, false], [true, true, true]],
-                    [[true, false], [true, true], [true, false]],
-                    [[true, true, true], [false, true, false]],
-                    [[false, true], [true, true], [false, true]]
+                    [[false, true, false], [true, true, true], [false, false, false]],
+                    [[false, true], [true, true], [false, true]],
+                    [[false, false, false], [true, true, true], [false, true, false]],
+                    [[true, false], [true, true], [true, false]]
                 ]
             ),
             // S Shape
@@ -74,7 +74,7 @@ struct TetrominoFactory {
                 color: Color.green,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, true, true], [true, true, false]],
+                    [[false, true, true], [true, true, false], [false, false, false]],
                     [[true, false], [true, true], [false, true]]
                 ]
             ),
@@ -88,8 +88,8 @@ struct TetrominoFactory {
                 color: Color.red,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[true, true, false], [false, true, true]],
-                    [[false, true], [true, true], [true, false]]
+                    [[false, true, true], [true, true, false], [false, false, false]],
+                    [[true, false], [true, true], [false, true]]
                 ]
             ),
             // J Shape
@@ -102,10 +102,10 @@ struct TetrominoFactory {
                 color: Color.blue,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[true, false, false], [true, true, true]],
-                    [[true, true], [true, false], [true, false]],
-                    [[true, true, true], [false, false, true]],
-                    [[false, true], [false, true], [true, true]]
+                    [[false, false, true], [true, true, true], [false, false, false]],
+                    [[true, false], [true, false], [true, true]],
+                    [[false, false, false], [true, true, true], [true, false, false]],
+                    [[true, true], [false, true], [false, true]]
                 ]
             ),
             // L Shape
@@ -118,9 +118,9 @@ struct TetrominoFactory {
                 color: Color.orange,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, false, true], [true, true, true]],
+                    [[false, false, true], [true, true, true], [false, false, false]],
                     [[true, false], [true, false], [true, true]],
-                    [[true, true, true], [true, false, false]],
+                    [[false, false, false], [true, true, true], [true, false, false]],
                     [[true, true], [false, true], [false, true]]
                 ]
             )
