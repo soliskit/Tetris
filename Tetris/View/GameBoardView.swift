@@ -22,21 +22,25 @@ struct GameBoardView: View {
                 
                 ForEach(0..<rows, id: \.self) { row in
                     ForEach(0..<columns, id: \.self) { column in
-                        Rectangle()
-                            .fill(gameManager.gameBoard[row][column].isFilled ? gameManager.gameBoard[row][column].color ?? .clear : .clear)
-                            .frame(width: blockSize, height: blockSize)
-                            .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                        if let cell = gameManager.gameBoard[safe: row]?[safe: column] {
+                            Rectangle()
+                                .fill(cell.isFilled ? cell.color ?? .clear : .clear)
+                                .frame(width: blockSize, height: blockSize)
+                                .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                        }
                     }
                 }
                 
                 ForEach(0..<gameManager.currentTetromino.shape.count, id: \.self) { row in
                     ForEach(0..<gameManager.currentTetromino.shape[row].count, id: \.self) { column in
-                        if gameManager.currentTetromino.shape[row][column] {
+                        if gameManager.currentTetromino.shape[row][column],
+                           let colOffset = CGFloat(exactly: column),
+                            let rowOffset = CGFloat(exactly: row) {
                             Rectangle()
                                 .fill(gameManager.currentTetromino.color)
                                 .frame(width: blockSize, height: blockSize)
-                                .position(x: blockSize * CGFloat(column + Int(gameManager.currentTetromino.position.column)) + blockSize / 2,
-                                          y: blockSize * CGFloat(row + Int(gameManager.currentTetromino.position.row)) + blockSize / 2)
+                                .position(x: blockSize * (colOffset + gameManager.currentTetromino.position.column) + blockSize / 2,
+                                          y: blockSize * (rowOffset + gameManager.currentTetromino.position.row) + blockSize / 2)
                         }
                     }
                 }
