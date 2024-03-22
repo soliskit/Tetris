@@ -37,13 +37,10 @@ struct Tetromino: Identifiable {
             Position(row: position.row + 1, column: position.column)
         ]
         
-        for testPosition in testPositions {
-            if checkIfValidPosition(for: nextShape, at: testPosition, on: gameBoard) {
-                shape = nextShape
-                rotationState = nextRotationState
-                position = testPosition
-                return
-            }
+        if let validPosition = testPositions.first(where: { checkIfValidPosition(for: nextShape, at: $0, on: gameBoard) }) {
+            shape = nextShape
+            rotationState = nextRotationState
+            position = validPosition
         }
     }
     
