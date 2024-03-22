@@ -10,6 +10,8 @@ import SwiftUI
 @Observable
 class GameManager {
     // MARK: - Properties
+    @ObservationIgnored
+    @AppStorage("highScore") private var highScore: Int = 0
     private var gameControllerManager: GameControllerManager?
     private let rows: Int = 20
     private let columns: Int = 10
@@ -111,6 +113,9 @@ class GameManager {
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
         standardDropInterval = max(0.1, 1.0 * pow(0.9, Double(level)))
+        if score > highScore {
+            highScore = score
+        }
     }
     
     private func isValidTetrominoPosition(tetromino: Tetromino, at position: Position) -> Bool {

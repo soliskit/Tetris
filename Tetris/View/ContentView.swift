@@ -65,11 +65,6 @@ struct ContentView: View {
                 hold: { gameManager.handleAction(.hold) }
             )
         }
-        .onChange(of: gameManager.state) {
-            if gameManager.score > highScore {
-                highScore = gameManager.score
-            }
-        }
     }
 }
 
