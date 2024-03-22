@@ -31,10 +31,10 @@ struct TetrominoFactory {
                     [[1, -1], [1, 0], [1, 1], [1, 2]]
                 ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 1), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: -1), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: -1)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: -1), CGPoint(x: 1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: -1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 1), CGPoint(x: -1, y: -2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 1)]
                 ]
             ),
             // O Shape
@@ -61,14 +61,10 @@ struct TetrominoFactory {
                     [[1, 0], [0, 1], [1, 1], [1, 2]]
                 ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)]
                 ]
             ),
             // S Shape
@@ -89,8 +85,8 @@ struct TetrominoFactory {
                 wallKickData: [
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)]
                 ]
             ),
             // Z Shape
@@ -109,10 +105,10 @@ struct TetrominoFactory {
                     [[2, 0], [1, 0], [1, 1], [0, 1]]
                 ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
                     [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)]
                 ]
             ),
             // J Shape
@@ -131,10 +127,10 @@ struct TetrominoFactory {
                     [[0, 1], [1, 1], [2, 0], [2, 1]]
                 ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: -1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: 1)]
                 ]
             ),
             // L Shape
@@ -153,10 +149,10 @@ struct TetrominoFactory {
                     [[2, 1], [1, 0], [1, 1], [0, 1]]
                 ],
                 wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)]
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: -1)],
+                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: 1)]
                 ]
             )
         ]
