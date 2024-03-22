@@ -24,11 +24,22 @@ struct TetrominoFactory {
                 ],
                 color: Color.cyan,
                 position: Position(row: 0, column: 3),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 1), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 2, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: 2, y: -1), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: -2, y: 0), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: -1)]
+                rotations: [
+                    [[true, true, true, true, true]],
+                    
+                    [[true], [true], [true], [true]],
+                    
+                    [[false, true, false], [true, true, true]],
+                    
+                    [[false, true, true], [true, true, false]],
+                    
+                    [[true, true, false], [false, true, true]],
+                    
+                    [[true, false, false], [true, true, true]],
+                    
+                    [[false, false, true], [true, true, true]],
+                    
+                    [[true, true], [true, true]]
                 ]
             ),
             // O Shape
@@ -36,7 +47,9 @@ struct TetrominoFactory {
                 shape: [[true, true], [true, true]],
                 color: Color.yellow,
                 position: Position(row: 0, column: 4),
-                wallKickData: [[CGPoint.zero]]
+                rotations: [
+                    [[true, true], [true, true]]
+                ]
             ),
             // T Shape
             (
@@ -47,11 +60,11 @@ struct TetrominoFactory {
                 ],
                 color: Color.purple,
                 position: Position(row: 0, column: 4),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)]
+                rotations: [
+                    [[false, true, false], [true, true, true]],
+                    [[true, false], [true, true], [true, false]],
+                    [[true, true, true], [false, true, false]],
+                    [[false, true], [true, true], [false, true]]
                 ]
             ),
             // S Shape
@@ -63,11 +76,9 @@ struct TetrominoFactory {
                 ],
                 color: Color.green,
                 position: Position(row: 0, column: 4),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2)]
+                rotations: [
+                    [[false, true, true], [true, true, false]],
+                    [[true, false], [true, true], [false, true]]
                 ]
             ),
             // Z Shape
@@ -79,11 +90,9 @@ struct TetrominoFactory {
                 ],
                 color: Color.red,
                 position: Position(row: 0, column: 4),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2)]
+                rotations: [
+                    [[true, true, false], [false, true, true]],
+                    [[false, true], [true, true], [true, false]]
                 ]
             ),
             // J Shape
@@ -95,11 +104,11 @@ struct TetrominoFactory {
                 ],
                 color: Color.blue,
                 position: Position(row: 0, column: 4),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: -1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: 1)]
+                rotations: [
+                    [[true, false, false], [true, true, true]],
+                    [[true, true], [true, false], [true, false]],
+                    [[true, true, true], [false, false, true]],
+                    [[false, true], [false, true], [true, true]]
                 ]
             ),
             // L Shape
@@ -111,11 +120,11 @@ struct TetrominoFactory {
                 ],
                 color: Color.orange,
                 position: Position(row: 0, column: 4),
-                wallKickData: [
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: -1, y: 2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: -1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: 1, y: -2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: 1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: -1), CGPoint(x: 0, y: 2), CGPoint(x: 1, y: 2), CGPoint(x: -2, y: 0), CGPoint(x: -2, y: -1)],
-                    [CGPoint(x: 0, y: 0), CGPoint(x: -1, y: 0), CGPoint(x: -1, y: 1), CGPoint(x: 0, y: -2), CGPoint(x: -1, y: -2), CGPoint(x: 2, y: 0), CGPoint(x: 2, y: 1)]
+                rotations: [
+                    [[false, false, true], [true, true, true]],
+                    [[true, false], [true, false], [true, true]],
+                    [[true, true, true], [true, false, false]],
+                    [[true, true], [false, true], [false, true]]
                 ]
             )
         ]
@@ -127,7 +136,7 @@ struct TetrominoFactory {
             shape: selectedShape.shape,
             color: selectedShape.color,
             position: selectedShape.position,
-            wallKickData: selectedShape.wallKickData
+            rotations: selectedShape.rotations
         )
     }
 }

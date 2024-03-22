@@ -193,7 +193,10 @@ class GameManager {
     
     private func rotateTetromino() {
         guard state == .playing else { return }
-        currentTetromino.rotate(gameBoard: gameBoard)
+        currentTetromino.rotate()
+        if isValidPosition(for: currentTetromino, at: currentTetromino.position) {
+            currentTetromino = currentTetromino
+        }
     }
     
     private func togglePauseResume() {
