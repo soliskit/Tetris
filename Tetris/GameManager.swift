@@ -15,8 +15,7 @@ class GameManager {
     private var gameControllerManager: GameControllerManager?
     private let rows: Int = 20
     private let columns: Int = 10
-    private var standardDropInterval: TimeInterval = 0.6
-    private let quickDropInterval: TimeInterval = 0.01
+    private var standardDropInterval: TimeInterval = 0.7
     private var timer: Timer?
     var currentTetromino: Tetromino
     var nextTetromino: Tetromino
@@ -26,6 +25,9 @@ class GameManager {
     var state: GameState = .gameOver
     var score: Int = 0
     var level: Int = 1
+    private var quickDropInterval: TimeInterval {
+        standardDropInterval * 0.001
+    }
     
     // MARK: - Initialization & Deinitialization
     init() {
@@ -112,7 +114,7 @@ class GameManager {
         gameBoard.insert(contentsOf: newLines, at: 0)
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
-        standardDropInterval = max(0.1, 1.0 * pow(0.9, Double(level)))
+        standardDropInterval = max(0.3, 0.7 - (0.00001 * Double(level - 1)))
         if score > highScore {
             highScore = score
         }
