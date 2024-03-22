@@ -136,7 +136,6 @@ class GameManager {
     }
     
     // MARK: - Gameplay Controls
-
     func handleAction(_ action: PlayerAction) {
         switch action {
             case .moveLeft:
