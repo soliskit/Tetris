@@ -104,7 +104,7 @@ class GameManager {
         completedLineIndices.reversed().forEach { index in
             gameBoard.remove(at: index)
         }
-        let newLines = Array(repeating: Array(repeating: GameCell(isFilled: false, color: nil), count: columns), count: completedLineIndices.count)
+        let newLines = Array(repeating: Array(repeating: GameCell(), count: columns), count: completedLineIndices.count)
         gameBoard.insert(contentsOf: newLines, at: 0)
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
