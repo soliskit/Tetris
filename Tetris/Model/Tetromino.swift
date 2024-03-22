@@ -29,27 +29,40 @@ struct Tetromino: Identifiable {
     mutating func rotate(gameBoard: [[GameCell]]) {
         let nextRotationState = (rotationState + 1) % rotations.count
         let nextShape = rotations[nextRotationState]
-        let activeBlocks = nextShape
-            .enumerated()
-            .flatMap { y, row in
-                row.enumerated().map { x, block -> (x: Int, y: Int, block: Bool) in
-                    (x: x + Int(position.column), y: y + Int(position.row), block: block)
-                }
-            }
-            .filter { $0.block }
-        let isValid = activeBlocks.allSatisfy { coordinate in
-            let (x, y, _) = coordinate
-            if let gameCell = gameBoard[safe: y]?[safe: x] {
-                return !gameCell.isFilled
-            } else {
-                return false
-            }
-        }
+        let testPositions = [
+            Position(row: position.row, column: position.column),
+            Position(row: position.row, column: position.column - 1),
+            Position(row: position.row, column: position.column + 1),
+            Position(row: position.row - 1, column: position.column),
+            Position(row: position.row + 1, column: position.column)
+        ]
         
-        if isValid {
-            rotationState = nextRotationState
-            shape = nextShape
+        for testPosition in testPositions {
+            if checkIfValidPosition(for: nextShape, at: testPosition, on: gameBoard) {
+                shape = nextShape
+                rotationState = nextRotationState
+                position = testPosition
+                return
+            }
         }
     }
-
+    
+    private func checkIfValidPosition(for shape: [[Bool]], at position: Position, on gameBoard: [[GameCell]]) -> Bool {
+        for (y, row) in shape.enumerated() {
+            for (x, block) in row.enumerated() where block {
+                let gameBoardX = Int(position.column) + x
+                let gameBoardY = Int(position.row) + y
+                
+                guard gameBoard.indices.contains(gameBoardY),
+                      gameBoard[gameBoardY].indices.contains(gameBoardX) else {
+                    return false
+                }
+                
+                if gameBoard[gameBoardY][gameBoardX].isFilled {
+                    return false
+                }
+            }
+        }
+        return true
+    }
 }

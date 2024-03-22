@@ -22,12 +22,11 @@ struct GameBoardView: View {
                 
                 ForEach(0..<rows, id: \.self) { row in
                     ForEach(0..<columns, id: \.self) { column in
-                        if let cell = gameManager.gameBoard[safe: row]?[safe: column] {
-                            Rectangle()
-                                .fill(cell.isFilled ? cell.color ?? .clear : .clear)
-                                .frame(width: blockSize, height: blockSize)
-                                .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
-                        }
+                        let cell = gameManager.gameBoard[row][column]
+                        Rectangle()
+                            .fill(cell.isFilled ? cell.color ?? .clear : .clear)
+                            .frame(width: blockSize, height: blockSize)
+                            .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
                     }
                 }
                 

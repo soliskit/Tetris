@@ -23,7 +23,7 @@ struct TetrominoFactory {
                     [false, false, false, false]
                 ],
                 color: Color.cyan,
-                position: Position(row: 0, column: 3),
+                position: Position(row: 0, column: 4),
                 rotations: [
                     [
                         [false, false, false, false],
@@ -88,8 +88,8 @@ struct TetrominoFactory {
                 color: Color.red,
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, true, true], [true, true, false], [false, false, false]],
-                    [[true, false], [true, true], [false, true]]
+                    [[true, true, false], [false, true, true], [false, false, false]],
+                    [[false, true], [true, true], [true, false]]
                 ]
             ),
             // J Shape

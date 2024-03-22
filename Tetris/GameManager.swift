@@ -59,14 +59,14 @@ class GameManager {
     private func generateNextTetromino() {
         currentTetromino = nextTetromino
         nextTetromino = TetrominoFactory.generate()
-        if !isValidPosition(for: currentTetromino, at: currentTetromino.position) {
+        if !isValidTetrominoPosition(shape: currentTetromino.shape, at: currentTetromino.position) {
             gameOver()
         }
     }
     
     private func dropTetromino(isSoftDropping: Bool = false) {
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
-        if isValidPosition(for: currentTetromino, at: newPosition) {
+        if isValidTetrominoPosition(shape: currentTetromino.shape, at: newPosition) {
             currentTetromino.position = newPosition
         } else {
             lockTetrominoInPlace()
@@ -93,7 +93,6 @@ class GameManager {
                 gameBoard[boardY][boardX].color = currentTetromino.color
             }
         }
-        clearFullRows()
     }
     
     // MARK: - Board Management
@@ -109,22 +108,16 @@ class GameManager {
         gameBoard.insert(contentsOf: newLines, at: 0)
     }
     
-    private func isValidPosition(for tetromino: Tetromino, at position: Position) -> Bool {
-        let activeBlocks = tetromino.shape
-            .enumerated()
-            .flatMap { y, row in
-                row.enumerated().map { x, block -> (x: Int, y: Int, block: Bool) in
-                    (x: x + Int(position.column), y: y + Int(position.row), block: block)
-                }
-            }
-            .filter { $0.block }
-        
-        return activeBlocks.allSatisfy { coordinate in
-            let (x, y, _) = coordinate
-            if let gameCell = gameBoard[safe: y]?[safe: x] {
-                return !gameCell.isFilled
-            } else {
-                return false
+    private func isValidTetrominoPosition(shape: [[Bool]], at position: Position) -> Bool {
+        !shape.enumerated().contains { rowIndex, row in
+            row.enumerated().contains { colIndex, cell in
+                guard cell else { return false }
+                let gameBoardX = Int(position.column) + colIndex
+                let gameBoardY = Int(position.row) + rowIndex
+                
+                return gameBoardX < 0 || gameBoardX >= columns ||
+                gameBoardY < 0 || gameBoardY >= rows ||
+                (gameBoardY < gameBoard.count && gameBoardX < gameBoard[gameBoardY].count && gameBoard[gameBoardY][gameBoardX].isFilled)
             }
         }
     }
@@ -170,7 +163,7 @@ class GameManager {
     private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
         let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + CGFloat(deltaX))
-        if isValidPosition(for: currentTetromino, at: newPosition) {
+        if isValidTetrominoPosition(shape: currentTetromino.shape, at: newPosition) {
             currentTetromino.position = newPosition
         }
     }
@@ -182,7 +175,7 @@ class GameManager {
             heldTetromino = currentTetromino
             currentTetromino = tetrominoToSwap
             currentTetromino.position = previousPosition
-            if !isValidPosition(for: currentTetromino, at: currentTetromino.position) {
+            if !isValidTetrominoPosition(shape: currentTetromino.shape, at: currentTetromino.position) {
                 gameOver()
             }
         } else {
@@ -193,14 +186,13 @@ class GameManager {
     
     private func rotateTetromino() {
         guard state == .playing else { return }
-        let originalPosition = currentTetromino.position
-        let originalShape = currentTetromino.shape
-        
-        currentTetromino.rotate(gameBoard: gameBoard)
-        
-        if !isValidPosition(for: currentTetromino, at: currentTetromino.position) {
-            currentTetromino.position = originalPosition
-            currentTetromino.shape = originalShape
+        let nextRotationState = (currentTetromino.rotationState + 1) % currentTetromino.rotations.count
+        let simulatedShape = currentTetromino.rotations[nextRotationState]
+        if isValidTetrominoPosition(shape: simulatedShape, at: currentTetromino.position) {
+            currentTetromino.rotationState = nextRotationState
+            currentTetromino.shape = simulatedShape
+        } else {
+            // Rotation is invalid, handle accordingly (e.g., try wall kicks or block rotation)
         }
     }
     
