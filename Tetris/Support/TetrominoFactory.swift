@@ -10,9 +10,9 @@ import SwiftUI
 struct TetrominoFactory {
     
     static func generate() -> Tetromino {
-        let shapes = [
+        let tetronimos: [Tetromino] = [
             // I Shape
-            (
+            Tetromino(
                 shape: [
                     [false, false, false, false],
                     [false, false, false, false],
@@ -33,7 +33,7 @@ struct TetrominoFactory {
                 ]
             ),
             // O Shape
-            (
+            Tetromino(
                 shape: [[true, true], [true, true]],
                 color: Color.yellow,
                 position: Position(row: 0, column: 4),
@@ -45,7 +45,7 @@ struct TetrominoFactory {
                 ]
             ),
             // T Shape
-            (
+            Tetromino(
                 shape: [
                     [false, true, false],
                     [true, true, true],
@@ -64,10 +64,9 @@ struct TetrominoFactory {
                     [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: 0), Position(row: 2, column: 1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: 0), Position(row: 2, column: 1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: -1, column: -1), Position(row: 2, column: 0), Position(row: 2, column: -1)]
-                ]
-            ),
+                ]),
             // S Shape
-            (
+            Tetromino(
                 shape: [
                     [false, true, true],
                     [true, true, false],
@@ -87,7 +86,7 @@ struct TetrominoFactory {
                 ]
             ),
             // Z Shape
-            (
+            Tetromino(
                 shape: [
                     [true, true, false],
                     [false, true, true],
@@ -107,7 +106,7 @@ struct TetrominoFactory {
                 ]
             ),
             // J Shape
-            (
+            Tetromino(
                 shape: [
                     [true, false, false],
                     [true, true, true],
@@ -129,7 +128,7 @@ struct TetrominoFactory {
                 ]
             ),
             // L Shape
-            (
+            Tetromino(
                 shape: [
                     [false, false, true],
                     [true, true, true],
@@ -151,16 +150,9 @@ struct TetrominoFactory {
                 ]
             )
         ]
-        guard let selectedShape = shapes.randomElement() else {
+        guard let selectedTetronimo = tetronimos.randomElement() else {
             fatalError("Unable to generate Tetromino")
         }
-        
-        return Tetromino(
-            shape: selectedShape.shape,
-            color: selectedShape.color,
-            position: selectedShape.position,
-            rotations: selectedShape.rotations,
-            wallKickData: selectedShape.wallKickData
-        )
+        return selectedTetronimo
     }
 }
