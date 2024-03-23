@@ -9,10 +9,17 @@ import GameController
 
 class GameControllerManager {
     weak var gameManager: GameManager?
+    private var movementDirection: Direction?
+    private var movementTimer: Timer?
     
     init(gameManager: GameManager) {
         self.gameManager = gameManager
         setupControllers()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        stopMoving()
     }
     
     private func setupControllers() {
@@ -34,26 +41,51 @@ class GameControllerManager {
     }
     
     private func configure(controller: GCController) {
-        controller.extendedGamepad?.valueChangedHandler = { [weak self] (gamepad, element) in
-            self?.handleInput(gamepad: gamepad, element: element)
+        controller.extendedGamepad?.valueChangedHandler = { [weak self] (gamepad, _) in
+            self?.handeButtonInput(gamepad: gamepad)
         }
     }
     
-    private func handleInput(gamepad: GCExtendedGamepad, element: GCControllerElement) {
-        
-        if gamepad.dpad.left.isPressed {
-            gameManager?.handleAction(.moveLeft)
-        } else if gamepad.dpad.right.isPressed {
-            gameManager?.handleAction(.moveRight)
-        } else if gamepad.dpad.up.isPressed {
+    private func handeButtonInput(gamepad: GCExtendedGamepad) {
+        if gamepad.buttonB.isPressed {
             gameManager?.handleAction(.rotate)
-        } else if gamepad.dpad.down.isPressed {
-            gameManager?.handleAction(.drop)
         }
-        
-        if gamepad.buttonA.isPressed {
+        if gamepad.buttonX.isPressed {
             gameManager?.handleAction(.hold)
         }
     }
+    
+    private func handleJoystickInput(gamepad: GCExtendedGamepad) {
+        let xValue = gamepad.leftThumbstick.xAxis.value
+        
+        if xValue < -0.5 {
+            startMoving(.left)
+        } else if xValue > 0.5 {
+            startMoving(.right)
+        } else {
+            stopMoving()
+        }
+    }
+    
+    private func startMoving(_ direction: Direction) {
+        movementDirection = direction
+        movementTimer?.invalidate()
+        movementTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            switch self.movementDirection {
+                case .left:
+                    self.gameManager?.handleAction(.moveLeft)
+                case .right:
+                    self.gameManager?.handleAction(.moveRight)
+                case .none:
+                    break
+            }
+        }
+    }
+    
+    private func stopMoving() {
+        movementTimer?.invalidate()
+        movementTimer = nil
+        movementDirection = nil
+    }
 }
-
