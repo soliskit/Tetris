@@ -26,10 +26,10 @@ struct TetrominoFactory {
                     [[false, false, true, false], [false, false, true, false], [false, false, true, false], [false, false, true, false]]
                 ],
                 wallKickData: [
-                    [Position(row: 0, column: -2), Position(row: 1, column: -2), Position(row: -2, column: 0), Position(row: -2, column: -1)],
-                    [Position(row: 0, column: 2), Position(row: -1, column: 2), Position(row: 2, column: 0), Position(row: 2, column: 1)],
-                    [Position(row: 0, column: -2), Position(row: 1, column: -2), Position(row: -2, column: 0), Position(row: -2, column: -1)],
-                    [Position(row: 0, column: 2), Position(row: -1, column: 2), Position(row: 2, column: 0), Position(row: 2, column: 1)]
+                    [Position(row: 0, column: -1), Position(row: 0, column: 2), Position(row: -1, column: 2), Position(row: 2, column: -1)],
+                    [Position(row: 0, column: 1), Position(row: 0, column: -2), Position(row: 1, column: -2), Position(row: -2, column: 1)],
+                    [Position(row: 0, column: 2), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 2)],
+                    [Position(row: 0, column: -2), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: -2)]
                 ]
             ),
             // O Shape
