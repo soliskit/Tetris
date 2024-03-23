@@ -42,7 +42,7 @@ class GameManager {
     var level: Int = 1
     /// Calculates a very quick drop interval for soft dropping Tetrominos.
     private var quickDropInterval: TimeInterval {
-        standardDropInterval * 0.001
+        standardDropInterval * 0.000001
     }
     
     // MARK: - Initialization & Deinitialization
