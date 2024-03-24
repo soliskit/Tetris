@@ -34,8 +34,8 @@ struct Tetromino: Identifiable {
         return !shape.enumerated().contains { rowIndex, row in
             row.enumerated().contains { columnIndex, block in
                 guard block else { return false }
-                let boardX = Int(position.column) + columnIndex
-                let boardY = Int(position.row) + rowIndex
+                let boardX = position.column + columnIndex
+                let boardY = position.row + rowIndex
                 if let gameBoardCell = gameBoard[safeRow: boardY, safeColumn: boardX] {
                     return gameBoardCell?.isFilled == true
                 }

@@ -116,8 +116,8 @@ class GameManager {
         currentTetromino.shape.enumerated().forEach { y, row in
             row.enumerated().forEach { x, block in
                 guard block else { return }
-                let boardX = Int(currentTetromino.position.column) + x
-                let boardY = Int(currentTetromino.position.row) + y
+                let boardX = currentTetromino.position.column + x
+                let boardY = currentTetromino.position.row + y
 
                 if gameBoard[safeRow: boardY, safeColumn: boardX] != nil {
                     gameBoard[boardY][boardX] = GameCell(isFilled: true, color: currentTetromino.color)
@@ -206,7 +206,7 @@ class GameManager {
     /// - Parameter deltaX: The horizontal movement amount.
     private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
-        let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + CGFloat(deltaX))
+        let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + deltaX)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
         }

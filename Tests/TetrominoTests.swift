@@ -45,9 +45,9 @@ final class TetrominoTests: XCTestCase {
         
         XCTAssertEqual(doesFit, expectedFit, "The tetromino fit within the game board should be \(expectedFit).")
         
-        let tetrominoX = Int(tetromino.position.column)
-        let tetrominoY = Int(tetromino.position.row)
         gameBoard[tetrominoY][tetrominoX] = GameCell(isFilled: true, color: .blue)
+        let tetrominoX = tetromino.position.column
+        let tetrominoY = tetromino.position.row
         
         let expectedFitAfterFillingCell = false
         let doesFitAfterFillingCell = tetromino.fitsWithin(gameBoard: gameBoard)

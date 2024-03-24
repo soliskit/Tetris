@@ -13,7 +13,7 @@ import Foundation
 /// The position is defined in terms of `row` and `column`, corresponding to the grid's coordinates.
 struct Position: Equatable {
     /// The vertical position in the grid, with 0 being the topmost row.
-    var row: CGFloat
+    var row: Int
     /// The horizontal position in the grid, with 0 being the leftmost column.
-    var column: CGFloat
+    var column: Int
 }

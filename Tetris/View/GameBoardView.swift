@@ -32,10 +32,10 @@ struct GameBoardView: View {
                 let tetromino = gameManager.currentTetromino
                 ForEach(0..<tetromino.shape.count, id: \.self) { row in
                     ForEach(0..<tetromino.shape[row].count, id: \.self) { column in
-                        if let cell = tetromino.shape[safeRow: row, safeColumn: column], cell {
-                            let tetrominoColumn = CGFloat(column) + tetromino.position.column
-                            let tetrominoRow = CGFloat(row) + tetromino.position.row
-
+                        if tetromino.shape[row][column] {
+                            let tetrominoColumn = CGFloat(tetromino.position.column + column)
+                            let tetrominoRow = CGFloat(tetromino.position.row + row)
+                            
                             if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
                                 Rectangle()
                                     .fill(tetromino.color)
