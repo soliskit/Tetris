@@ -12,7 +12,7 @@ import SwiftUI
 /// A Tetromino has a specific shape, color, position on the game board, and can be rotated.
 struct Tetromino: Identifiable {
     /// A unique identifier for each Tetromino instance.
-    let id = UUID()
+    var id = UUID()
     /// The 2D array representing the Tetromino's shape, where `true` indicates a block is present.
     var shape: [[Bool]]
     /// The color of the Tetromino.
