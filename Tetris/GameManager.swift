@@ -118,7 +118,8 @@ class GameManager {
                 guard block else { return }
                 let boardX = Int(currentTetromino.position.column) + x
                 let boardY = Int(currentTetromino.position.row) + y
-                if let _ = gameBoard[safe: boardY], let _ = gameBoard[safe: boardX] {
+
+                if gameBoard[safeRow: boardY, safeColumn: boardX] != nil {
                     gameBoard[boardY][boardX] = GameCell(isFilled: true, color: currentTetromino.color)
                 }
             }

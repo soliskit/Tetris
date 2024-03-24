@@ -29,21 +29,19 @@ struct GameBoardView: View {
                             .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
                     }
                 }
-                
-                ForEach(0..<gameManager.currentTetromino.shape.count, id: \.self) { row in
-                    if let currentRow = gameManager.currentTetromino.shape[safe: row] {
-                        ForEach(0..<currentRow.count, id: \.self) { column in
-                            if let cell = currentRow[safe: column], cell {
-                                let tetrominoColumn = CGFloat(column) + gameManager.currentTetromino.position.column
-                                let tetrominoRow = CGFloat(row) + gameManager.currentTetromino.position.row
-                                
-                                if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
-                                    Rectangle()
-                                        .fill(gameManager.currentTetromino.color)
-                                        .frame(width: blockSize, height: blockSize)
-                                        .position(x: blockSize * tetrominoColumn + blockSize / 2,
-                                                  y: blockSize * tetrominoRow + blockSize / 2)
-                                }
+                let tetromino = gameManager.currentTetromino
+                ForEach(0..<tetromino.shape.count, id: \.self) { row in
+                    ForEach(0..<tetromino.shape[row].count, id: \.self) { column in
+                        if let cell = tetromino.shape[safeRow: row, safeColumn: column], cell {
+                            let tetrominoColumn = CGFloat(column) + tetromino.position.column
+                            let tetrominoRow = CGFloat(row) + tetromino.position.row
+
+                            if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
+                                Rectangle()
+                                    .fill(tetromino.color)
+                                    .frame(width: blockSize, height: blockSize)
+                                    .position(x: blockSize * tetrominoColumn + blockSize / 2,
+                                              y: blockSize * tetrominoRow + blockSize / 2)
                             }
                         }
                     }

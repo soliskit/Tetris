@@ -36,7 +36,7 @@ struct Tetromino: Identifiable {
                 guard block else { return false }
                 let boardX = Int(position.column) + columnIndex
                 let boardY = Int(position.row) + rowIndex
-                if let gameBoardRow = gameBoard[safe: boardY], let gameBoardCell = gameBoardRow[safe: boardX] {
+                if let gameBoardCell = gameBoard[safeRow: boardY, safeColumn: boardX] {
                     return gameBoardCell?.isFilled == true
                 }
                 return true
