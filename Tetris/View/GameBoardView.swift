@@ -24,7 +24,7 @@ struct GameBoardView: View {
                     ForEach(0..<columns, id: \.self) { column in
                         let cell = gameManager.gameBoard[row][column]
                         Rectangle()
-                            .fill(cell?.isFilled ?? false ? cell?.color ?? .clear : .clear)
+                            .fill(cell?.isFilled ?? false ? cell?.color?.value ?? .clear : .clear)
                             .frame(width: blockSize, height: blockSize)
                             .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
                     }
@@ -38,7 +38,7 @@ struct GameBoardView: View {
                             
                             if tetrominoColumn >= 0, tetrominoColumn < CGFloat(columns), tetrominoRow >= 0, tetrominoRow < CGFloat(rows) {
                                 Rectangle()
-                                    .fill(tetromino.color)
+                                    .fill(tetromino.color.value)
                                     .frame(width: blockSize, height: blockSize)
                                     .position(x: blockSize * tetrominoColumn + blockSize / 2,
                                               y: blockSize * tetrominoRow + blockSize / 2)

@@ -11,7 +11,7 @@ import Foundation
 ///
 /// This enum defines the various states the game can be in at any given time,
 /// such as when it's actively being played, paused by the user, or when the game has ended.
-enum GameState {
+enum GameState: Codable {
     /// The game is currently in progress.
     /// This state indicates that the game is actively being played.
     case playing

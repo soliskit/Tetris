@@ -24,7 +24,7 @@ struct TetrominoPreview: View {
                     .frame(width: boardWidth, height: boardHeight)
                     .border(.black, width: 2)
                 
-                if let shape = tetromino?.shape, let color = tetromino?.color {
+                if let shape = tetromino?.shape, let color = tetromino?.color.value {
                     let xOffset = (boardWidth - CGFloat(shape[0].count) * blockSize) / 2
                     let yOffset = (boardHeight - CGFloat(shape.count) * blockSize) / 2
                     

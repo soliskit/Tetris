@@ -13,7 +13,7 @@ final class TetrominoTests: XCTestCase {
     var gameBoard: [[GameCell?]]!
 
     override func setUpWithError() throws {
-        tetromino = Tetromino(shape: [[true]], color: .red, position: Position(row: 0, column: 0), rotations: [[[true]]], wallKickData: [[Position(row: 0, column: 0)]])
+        tetromino = Tetromino(shape: [[true]], color: CustomColor(from: .red), position: Position(row: 0, column: 0), rotations: [[[true]]], wallKickData: [[Position(row: 0, column: 0)]])
         gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
 
@@ -45,9 +45,9 @@ final class TetrominoTests: XCTestCase {
         
         XCTAssertEqual(doesFit, expectedFit, "The tetromino fit within the game board should be \(expectedFit).")
         
-        gameBoard[tetrominoY][tetrominoX] = GameCell(isFilled: true, color: .blue)
         let tetrominoX = tetromino.position.column
         let tetrominoY = tetromino.position.row
+        gameBoard[tetrominoY][tetrominoX] = GameCell(isFilled: true, color: CustomColor(from: .blue))
         
         let expectedFitAfterFillingCell = false
         let doesFitAfterFillingCell = tetromino.fitsWithin(gameBoard: gameBoard)
