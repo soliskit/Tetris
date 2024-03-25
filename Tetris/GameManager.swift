@@ -20,8 +20,6 @@ class GameManager {
     private let rows: Int = 20
     /// The number of columns in the game board.
     private let columns: Int = 10
-    /// The interval at which Tetrominos naturally drop down the game board.
-    private var standardDropInterval: TimeInterval = 0.7
     /// Timer for managing the periodic dropping of Tetrominos.
     private var timer: Timer?
     /// The current Tetromino being controlled by the player.
@@ -40,6 +38,10 @@ class GameManager {
     var score: Int = 0
     /// The current level of the game, affecting the drop speed.
     var level: Int = 1
+    /// The interval at which Tetrominos naturally drop down the game board.
+    private var standardDropInterval: TimeInterval {
+        max(0.3, 0.7 - (0.00001 * Double(level - 1)))
+    }
     /// Calculates a very quick drop interval for soft dropping Tetrominos.
     private var quickDropInterval: TimeInterval {
         standardDropInterval * 0.000001
@@ -141,7 +143,6 @@ class GameManager {
         gameBoard.insert(contentsOf: newLines, at: 0)
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
-        standardDropInterval = max(0.3, 0.7 - (0.00001 * Double(level - 1)))
         if score > highScore {
             highScore = score
         }
