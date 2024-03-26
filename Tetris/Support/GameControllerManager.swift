@@ -47,6 +47,12 @@ class GameControllerManager {
     }
     
     private func handeButtonInput(gamepad: GCExtendedGamepad) {
+        if gameManager?.state == .playing && gamepad.buttonMenu.isPressed {
+            gameManager?.handleAction(.pause)
+        }
+        if gameManager?.state == .paused && gamepad.buttonMenu.isPressed {
+            gameManager?.handleAction(.resume)
+        }
         if gamepad.buttonB.isPressed {
             gameManager?.handleAction(.rotate)
         }
