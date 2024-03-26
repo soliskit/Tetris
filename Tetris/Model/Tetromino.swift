@@ -10,7 +10,7 @@ import SwiftUI
 /// Represents a Tetromino, the game pieces used in Tetris.
 ///
 /// A Tetromino has a specific shape, color, position on the game board, and can be rotated.
-struct Tetromino: Identifiable, Codable {
+struct Tetromino: Identifiable, Equatable, Codable {
     /// A unique identifier for each Tetromino instance.
     var id = UUID()
     /// The 2D array representing the Tetromino's shape, where `true` indicates a block is present.

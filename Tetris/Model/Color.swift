@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CustomColor: Codable {
+struct CustomColor: Codable, Equatable {
     let red: Double
     let green: Double
     let blue: Double
