@@ -188,6 +188,13 @@ class GameManager {
     /// - Parameter action: The player action to handle.
     func handleAction(_ action: PlayerAction) {
         switch action {
+            case .pause:
+                state = .paused
+                stopGameTimer()
+                saveGameSession()
+            case .resume:
+                state = .playing
+                startGameTimer()
             case .moveLeft:
                 moveTetromino(horizontalBy: -1)
             case .moveRight:
@@ -198,12 +205,6 @@ class GameManager {
                 rotateTetromino()
             case .drop:
                 dropTetromino(isSoftDropping: true)
-            case .pause:
-                state = .paused
-                stopGameTimer()
-            case .resume:
-                state = .playing
-                startGameTimer()
         }
     }
     
