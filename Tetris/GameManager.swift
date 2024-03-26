@@ -82,15 +82,15 @@ class GameManager {
     /// - Upon successful decoding, the game's state is updated with the loaded data
     private func loadGameSession() {
         if let savedGameSessionData = UserDefaults.standard.data(forKey: "savedGameSession"),
-           let loadedGameSession = try? JSONDecoder().decode(GameSession.self, from: savedGameSessionData) {
+           let session = try? JSONDecoder().decode(GameSession.self, from: savedGameSessionData) {
             state = .paused
-            gameBoard = loadedGameSession.gameBoard
-            score = loadedGameSession.score
-            level = loadedGameSession.level
-            currentTetromino = loadedGameSession.currentTetromino
-            nextTetromino = loadedGameSession.nextTetromino
-            heldTetromino = loadedGameSession.heldTetromino
-            canHoldTetromino = loadedGameSession.canHoldTetromino
+            gameBoard = session.gameBoard
+            score = session.score
+            level = session.level
+            currentTetromino = session.currentTetromino
+            nextTetromino = session.nextTetromino
+            heldTetromino = session.heldTetromino
+            canHoldTetromino = session.canHoldTetromino
         }
     }
     
