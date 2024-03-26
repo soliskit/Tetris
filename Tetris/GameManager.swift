@@ -14,6 +14,9 @@ class GameManager {
     /// Stores the highest score achieved across sessions.
     @ObservationIgnored
     @AppStorage("highScore") private var highScore: Int = 0
+    /// Tracks whether the game session was successfully saved to UserDefaults.
+    @ObservationIgnored
+    @AppStorage("isSessionSaved") private var isSessionSaved: Bool = false
     /// Manages input from an external game controller.
     private var gameControllerManager: GameControllerManager?
     /// The number of rows in the game board.
@@ -74,6 +77,36 @@ class GameManager {
         canHoldTetromino = true
     }
     
+    /// Attempts to load the game session from UserDefaults.
+    /// - If there is saved data under the key "savedGameSession", it tries to decode this data into a `GameSession` object.
+    /// - Upon successful decoding, the game's state is updated with the loaded data
+    private func loadGameSession() {
+        if let savedGameSessionData = UserDefaults.standard.data(forKey: "savedGameSession"),
+           let loadedGameSession = try? JSONDecoder().decode(GameSession.self, from: savedGameSessionData) {
+            state = .paused
+            gameBoard = loadedGameSession.gameBoard
+            score = loadedGameSession.score
+            level = loadedGameSession.level
+            currentTetromino = loadedGameSession.currentTetromino
+            nextTetromino = loadedGameSession.nextTetromino
+            heldTetromino = loadedGameSession.heldTetromino
+            canHoldTetromino = loadedGameSession.canHoldTetromino
+        }
+    }
+    
+    /// Saves the current game session to UserDefaults.
+    /// - Encodes the `GameSession` object containing the current game state into JSON data.
+    /// - If encoding is successful, it saves this data under the key "savedGameSession".
+    /// - Sets the `isSessionSaved` flag based on whether the save operation was successful.
+    private func saveGameSession() {
+        let gameSession = GameSession(currentTetromino: currentTetromino, nextTetromino: nextTetromino, heldTetromino: heldTetromino, canHoldTetromino: canHoldTetromino, gameBoard: gameBoard, score: score, level: level)
+        
+        if let encodedData = try? JSONEncoder().encode(gameSession) {
+            UserDefaults.standard.set(encodedData, forKey: "savedGameSession")
+            isSessionSaved = true
+        } else {
+            isSessionSaved = false
+        }
     }
     
     // MARK: - Tetromino Management
@@ -179,7 +212,9 @@ class GameManager {
     func handleAction(_ action: PlayerAction) {
         switch action {
             case .newGame:
+                resetGameSession()
             case .continueGame:
+                loadGameSession()
             case .pause:
                 state = .paused
                 stopGameTimer()
