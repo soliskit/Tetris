@@ -173,6 +173,7 @@ class GameManager {
         if score > highScore {
             highScore = score
         }
+        saveGameSession()
     }
     
     /// Checks if a Tetromino's position is valid within the game board.
