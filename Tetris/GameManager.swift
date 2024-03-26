@@ -81,10 +81,6 @@ class GameManager {
         heldTetromino = nil
     }
     
-    /// Ends the current game and stops the game timer.
-    private func gameOver() {
-        state = .gameOver
-        stopGameTimer()
     }
     
     // MARK: - Tetromino Management
@@ -94,7 +90,8 @@ class GameManager {
         nextTetromino = TetrominoFactory.generate()
         canHoldTetromino = true
         if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
-            gameOver()
+            state = .gameOver
+            stopGameTimer()
         }
     }
     
