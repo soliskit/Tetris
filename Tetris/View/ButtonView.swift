@@ -13,11 +13,11 @@ struct ButtonView: View {
     
     var body: some View {
         HStack {
-            Button("New Game") {
-                gameManager.handleAction(.newGame)
-            }
-            .buttonStyle(GameControlButtonStyle())
             if gameManager.state == .gameOver {
+                Button("New Game") {
+                    gameManager.handleAction(.newGame)
+                }
+                .buttonStyle(GameControlButtonStyle())
                 if isSessionSaved {
                     Button("Continue") {
                         gameManager.handleAction(.continueGame)
