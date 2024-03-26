@@ -178,6 +178,8 @@ class GameManager {
     /// - Parameter action: The player action to handle.
     func handleAction(_ action: PlayerAction) {
         switch action {
+            case .newGame:
+            case .continueGame:
             case .pause:
                 state = .paused
                 stopGameTimer()
