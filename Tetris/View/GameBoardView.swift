@@ -22,11 +22,12 @@ struct GameBoardView: View {
                 
                 ForEach(0..<rows, id: \.self) { row in
                     ForEach(0..<columns, id: \.self) { column in
-                        let cell = gameManager.gameBoard[row][column]
-                        Rectangle()
-                            .fill(cell?.isFilled ?? false ? cell?.color?.value ?? .clear : .clear)
-                            .frame(width: blockSize, height: blockSize)
-                            .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                        if let cell = gameManager.gameBoard[safeRow: row, safeColumn: column], cell?.isFilled == true {
+                            Rectangle()
+                                .fill(cell?.color?.value ?? .clear)
+                                .frame(width: blockSize, height: blockSize)
+                                .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
+                        }
                     }
                 }
                 let tetromino = gameManager.currentTetromino
