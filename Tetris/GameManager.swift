@@ -70,8 +70,12 @@ class GameManager {
     
     /// Resets the game to its initial state, ready for a new game to start.
     private func resetGame() {
-        state = .playing
+        state = .paused
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
+        currentTetromino = TetrominoFactory.generate()
+        nextTetromino = TetrominoFactory.generate()
+        heldTetromino = nil
+        canHoldTetromino = true
         score = 0
         level = 1
         heldTetromino = nil
