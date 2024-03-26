@@ -238,15 +238,4 @@ class GameManager {
         guard state == .playing else { return }
         currentTetromino.rotate(gameBoard: gameBoard)
     }
-    
-    /// Toggles the game state between paused and playing.
-    private func togglePauseResume() {
-        if state == .playing {
-            state = .paused
-            stopGameTimer()
-        } else {
-            state = .playing
-            startGame()
-        }
-    }
 }
