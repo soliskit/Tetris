@@ -19,7 +19,7 @@ struct TetrominoFactory {
                     [true, true, true, true],
                     [false, false, false, false]
                 ],
-                color: Color.cyan,
+                color: CustomColor(from: .cyan),
                 position: Position(row: 0, column: 3),
                 rotations: [
                     [[false, false, false, false], [false, false, false, false], [true, true, true, true], [false, false, false, false]],
@@ -35,7 +35,7 @@ struct TetrominoFactory {
             // O Shape
             Tetromino(
                 shape: [[true, true], [true, true]],
-                color: Color.yellow,
+                color: CustomColor(from: .yellow),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[true, true], [true, true]]
@@ -51,7 +51,7 @@ struct TetrominoFactory {
                     [true, true, true],
                     [false, false, false]
                 ],
-                color: Color.purple,
+                color: CustomColor(from: .purple),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[false, true, false], [true, true, true], [false, false, false]],
@@ -72,7 +72,7 @@ struct TetrominoFactory {
                     [true, true, false],
                     [false, false, false]
                 ],
-                color: Color.green,
+                color: CustomColor(from: .green),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[false, true, true], [true, true, false], [false, false, false]],
@@ -92,7 +92,7 @@ struct TetrominoFactory {
                     [false, true, true],
                     [false, false, false]
                 ],
-                color: Color.red,
+                color: CustomColor(from: .red),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[true, true, false], [false, true, true], [false, false, false]],
@@ -112,7 +112,7 @@ struct TetrominoFactory {
                     [true, true, true],
                     [false, false, false]
                 ],
-                color: Color.blue,
+                color: CustomColor(from: .blue),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[false, false, true], [true, true, true], [false, false, false]],
@@ -134,7 +134,7 @@ struct TetrominoFactory {
                     [true, true, true],
                     [false, false, false]
                 ],
-                color: Color.orange,
+                color: CustomColor(from: .orange),
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[false, false, true], [true, true, true], [false, false, false]],

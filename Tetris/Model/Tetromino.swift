@@ -10,13 +10,13 @@ import SwiftUI
 /// Represents a Tetromino, the game pieces used in Tetris.
 ///
 /// A Tetromino has a specific shape, color, position on the game board, and can be rotated.
-struct Tetromino: Identifiable {
+struct Tetromino: Identifiable, Equatable, Codable {
     /// A unique identifier for each Tetromino instance.
-    let id = UUID()
+    var id = UUID()
     /// The 2D array representing the Tetromino's shape, where `true` indicates a block is present.
     var shape: [[Bool]]
     /// The color of the Tetromino.
-    var color: Color
+    var color: CustomColor
     /// The current position of the Tetromino on the game board.
     var position: Position
     /// An array of shapes representing all rotation states of the Tetromino.
@@ -34,8 +34,8 @@ struct Tetromino: Identifiable {
         return !shape.enumerated().contains { rowIndex, row in
             row.enumerated().contains { columnIndex, block in
                 guard block else { return false }
-                let boardX = Int(position.column) + columnIndex
-                let boardY = Int(position.row) + rowIndex
+                let boardX = position.column + columnIndex
+                let boardY = position.row + rowIndex
                 if let gameBoardCell = gameBoard[safeRow: boardY, safeColumn: boardX] {
                     return gameBoardCell?.isFilled == true
                 }

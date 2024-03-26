@@ -14,85 +14,160 @@ class GameManagerTests: XCTestCase {
     
     override func setUpWithError() throws {
         gameManager = GameManager()
-        gameBoard = Array(repeating: Array(repeating: nil, count: 10), count: 20)
     }
     
     override func tearDownWithError() throws {
         gameManager = nil
-        gameBoard = nil
     }
     
-    func testStartGame() {
-        gameManager.startGame()
-        XCTAssertEqual(gameManager.state, .playing, "Game state should be set to .playing when the game starts.")
-        XCTAssertEqual(gameManager.score, 0, "Score should be reset to 0 at the start of a new game.")
-        XCTAssertEqual(gameManager.level, 1, "Level should be set to 1 at the start of a new game.")
+    func testGameManagerInitialization() {
+        XCTAssertNotNil(gameManager.currentTetromino)
+        XCTAssertNotNil(gameManager.nextTetromino)
+        XCTAssertNil(gameManager.heldTetromino)
+        XCTAssertTrue(gameManager.canHoldTetromino)
+        XCTAssertEqual(gameManager.score, 0)
+        XCTAssertEqual(gameManager.level, 1)
+        XCTAssertEqual(gameManager.state, .gameOver)
+        let expectedGameBoard = Array(repeating: Array(repeating: GameCell(), count: 10), count: 20)
+        XCTAssertTrue(isGameBoardInInitialState(gameManager.gameBoard))
+    }
+    
+    func testHandleNewGameAction() {
+        gameManager.handleAction(.newGame)
+        XCTAssertEqual(gameManager.state, .paused)
+    }
+    
+    func testHandleContinueGameAction() {
+        let mockGameSession = GameSession(
+            gameBoard: Array(repeating: Array(repeating: GameCell(isFilled: true, color: CustomColor(from: .red)), count: 10), count: 20),
+            score: 100,
+            level: 2,
+            currentTetromino: TetrominoFactory.generate(),
+            nextTetromino: TetrominoFactory.generate(),
+            heldTetromino: nil,
+            canHoldTetromino: true
+        )
         
-        XCTAssertNotNil(gameManager.currentTetromino, "There should be a current tetromino at the start of the game.")
-        XCTAssertNotNil(gameManager.nextTetromino, "There should be a next tetromino defined at the start of the game.")
+        if let encodedSession = try? JSONEncoder().encode(mockGameSession) {
+            UserDefaults.standard.set(encodedSession, forKey: "savedGameSession")
+        }
+        
+        gameManager.handleAction(.continueGame)
+        
+        XCTAssertEqual(gameManager.gameBoard, mockGameSession.gameBoard)
+        XCTAssertEqual(gameManager.score, mockGameSession.score)
+        XCTAssertEqual(gameManager.level, mockGameSession.level)
+        XCTAssertEqual(gameManager.currentTetromino, mockGameSession.currentTetromino)
+        XCTAssertEqual(gameManager.nextTetromino, mockGameSession.nextTetromino)
+        XCTAssertEqual(gameManager.heldTetromino, mockGameSession.heldTetromino)
+        XCTAssertEqual(gameManager.canHoldTetromino, mockGameSession.canHoldTetromino)
+        
+        UserDefaults.standard.removeObject(forKey: "savedGameSession")
     }
 
-    func testHandleActionMoveLeft() {
-        gameManager.startGame()
-        let initialColumn = gameManager.currentTetromino.position.column
+    func testHandleMoveLeftAction() {
+        gameManager.handleAction(.newGame)
+        gameManager.handleAction(.resume)
+        
+        let originalBoard = gameManager.gameBoard
+        let originalPosition = gameManager.currentTetromino.position
         gameManager.handleAction(.moveLeft)
-        XCTAssertEqual(gameManager.currentTetromino.position.column, initialColumn - 1)
+        
+        XCTAssertEqual(gameManager.currentTetromino.position.column, originalPosition.column - 1, "Tetromino should have moved left by one column.")
+        
+        XCTAssertTrue(verifyTetrominoPlacement(gameManager.currentTetromino, on: gameManager.gameBoard), "Tetromino should be within valid bounds after moving left.")
+        
+        XCTAssertTrue(verifyNoUnintendedGameBoardChanges(originalBoard, gameManager.gameBoard, excludingTetromino: gameManager.currentTetromino), "Moving tetromino left should not affect other parts of the game board.")
     }
     
-    func testHandleActionMoveRight() {
-        gameManager.startGame()
-        let initialColumn = gameManager.currentTetromino.position.column
+    func testHandleMoveRightAction() {
+        gameManager.handleAction(.newGame)
+        gameManager.handleAction(.resume)
+        
+        let originalBoard = gameManager.gameBoard
+        let originalPosition = gameManager.currentTetromino.position
         gameManager.handleAction(.moveRight)
-        XCTAssertEqual(gameManager.currentTetromino.position.column, initialColumn + 1)
+        
+        XCTAssertEqual(gameManager.currentTetromino.position.column, originalPosition.column + 1, "Tetromino should have moved right by one column.")
+        
+        XCTAssertTrue(verifyTetrominoPlacement(gameManager.currentTetromino, on: gameManager.gameBoard), "Tetromino should be within valid bounds after moving right.")
+        
+        XCTAssertTrue(verifyNoUnintendedGameBoardChanges(originalBoard, gameManager.gameBoard, excludingTetromino: gameManager.currentTetromino), "Moving tetromino right should not affect other parts of the game board.")
+    }
+    
+    func testHandleHoldActionWithNoTetrominoHeld() {
+        gameManager.handleAction(.newGame)
+        gameManager.handleAction(.resume)
+        
+        let currentTetrominoBeforeHold = gameManager.currentTetromino
+        let nextTetrominoBeforeHold = gameManager.nextTetromino
+        
+        gameManager.handleAction(.hold)
+        
+        XCTAssertNotNil(gameManager.heldTetromino, "There should be a Tetromino in the hold slot after holding.")
+        XCTAssertEqual(gameManager.currentTetromino, nextTetrominoBeforeHold, "The next Tetromino should become the current one after holding.")
+        XCTAssertEqual(gameManager.heldTetromino, currentTetrominoBeforeHold, "The held Tetromino should be the one that was current before holding.")
+        
+        XCTAssertFalse(gameManager.canHoldTetromino, "The game should not allow holding another Tetromino immediately after holding one.")
     }
 
-    func testHandleActionHold() {
-        gameManager.startGame()
-        let initialTetromino = gameManager.currentTetromino
+    func testHandleHoldActionWithTetrominoAlreadyHeld() {
+        gameManager.handleAction(.newGame)
+        gameManager.handleAction(.resume)
         gameManager.handleAction(.hold)
-        XCTAssertNotNil(gameManager.heldTetromino)
-        XCTAssertEqual(gameManager.heldTetromino?.id, initialTetromino.id)
-        // Further checks might be necessary depending on how hold functionality is implemented
+        
+        gameManager.canHoldTetromino = true
+        
+        let currentTetrominoBeforeSecondHold = gameManager.currentTetromino
+        let heldTetrominoBeforeSecondHold = gameManager.heldTetromino
+        
+        gameManager.handleAction(.hold)
+        
+        XCTAssertEqual(gameManager.currentTetromino, heldTetrominoBeforeSecondHold, "The previously held Tetromino should become the current one.")
+        XCTAssertEqual(gameManager.heldTetromino, currentTetrominoBeforeSecondHold, "The previously current Tetromino should now be held.")
+        
+        XCTAssertFalse(gameManager.canHoldTetromino, "Should not be able to hold immediately after holding.")
     }
     
-    func testHandleActionRotate() {
-        let originalTetromino = gameManager.currentTetromino
-        guard let originalBoard = gameBoard else { fatalError("gameBoard failed to initialize") }
-        gameManager.startGame()
+    func testHandleRotateAction() {
+        gameManager.handleAction(.newGame)
+        gameManager.handleAction(.resume)
+        
+        let originalRotationState = gameManager.currentTetromino.rotationState
+        let expectedNextRotationState = (originalRotationState + 1) % gameManager.currentTetromino.rotations.count
         
         gameManager.handleAction(.rotate)
         
-        let rotatedTetromino = gameManager.currentTetromino
-        XCTAssertNotEqual(originalTetromino.shape, rotatedTetromino.shape, "The tetromino shape should change after rotation.")
-        XCTAssertEqual(originalTetromino.position, rotatedTetromino.position, "The tetromino position should not change after rotation.")
+        XCTAssertEqual(gameManager.currentTetromino.rotationState, expectedNextRotationState, "Tetromino should have advanced to the next rotation state.")
         
-        XCTAssertTrue(isGameBoardInInitialState(gameBoard), "The game board should be in its initial state.")
+        XCTAssertTrue(gameManager.currentTetromino.fitsWithin(gameBoard: gameManager.gameBoard), "The Tetromino's new orientation should fit within the game board without overlapping filled cells.")
         
-        XCTAssertTrue(verifyTetrominoPlacement(rotatedTetromino, on: gameBoard), "The tetromino should be placed correctly on the game board.")
+        let newPosition = gameManager.currentTetromino.position
+        XCTAssertEqual(newPosition, gameManager.currentTetromino.position, "Tetromino position should remain unchanged after rotation.")
         
-        XCTAssertTrue(verifyNoUnintendedGameBoardChanges(originalBoard, gameBoard, excludingTetromino: rotatedTetromino), "There should be no unintended changes on the game board.")
+        XCTAssertEqual(gameManager.state, .playing, "Game state should remain as playing after rotation action.")
     }
-    
-    func testHandleActionDrop() {
-        gameManager.startGame()
-        let initialRow = gameManager.currentTetromino.position.row
-        gameManager.handleAction(.drop)
-        XCTAssertEqual(gameManager.currentTetromino.position.row, initialRow + 1)
-    }
-    
-    func testHandleActionPauseAndResume() {
-        gameManager.startGame()
-        gameManager.handleAction(.pause)
-        XCTAssertEqual(gameManager.state, .paused)
-        
+
+    func testHandleDropAction() {
+        gameManager.handleAction(.newGame)
         gameManager.handleAction(.resume)
-        XCTAssertEqual(gameManager.state, .playing)
+        
+        let originalPosition = gameManager.currentTetromino.position
+        
+        gameManager.handleAction(.drop)
+        
+        let expectedPosition = Position(row: originalPosition.row + 1, column: originalPosition.column)
+        XCTAssertEqual(gameManager.currentTetromino.position, expectedPosition, "Tetromino should move down by one row after a drop action.")
+        
+        XCTAssertTrue(gameManager.currentTetromino.fitsWithin(gameBoard: gameManager.gameBoard), "Tetromino should still fit within game board bounds after a drop.")
+        
+        XCTAssertEqual(gameManager.state, .playing, "Game state should remain playing after a drop action.")
     }
-    
+
     private func isGameBoardInInitialState(_ gameBoard: [[GameCell?]]) -> Bool {
         for row in gameBoard {
             for cell in row {
-                if cell?.isFilled == true {
+                if let isFilled = cell?.isFilled, isFilled {
                     return false
                 }
             }

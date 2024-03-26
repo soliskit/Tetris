@@ -14,14 +14,15 @@ class GameManager {
     /// Stores the highest score achieved across sessions.
     @ObservationIgnored
     @AppStorage("highScore") private var highScore: Int = 0
+    /// Tracks whether the game session was successfully saved to UserDefaults.
+    @ObservationIgnored
+    @AppStorage("isSessionSaved") private var isSessionSaved: Bool = false
     /// Manages input from an external game controller.
     private var gameControllerManager: GameControllerManager?
     /// The number of rows in the game board.
     private let rows: Int = 20
     /// The number of columns in the game board.
     private let columns: Int = 10
-    /// The interval at which Tetrominos naturally drop down the game board.
-    private var standardDropInterval: TimeInterval = 0.7
     /// Timer for managing the periodic dropping of Tetrominos.
     private var timer: Timer?
     /// The current Tetromino being controlled by the player.
@@ -40,6 +41,10 @@ class GameManager {
     var score: Int = 0
     /// The current level of the game, affecting the drop speed.
     var level: Int = 1
+    /// The interval at which Tetrominos naturally drop down the game board.
+    private var standardDropInterval: TimeInterval {
+        max(0.3, 0.7 - (0.00001 * Double(level - 1)))
+    }
     /// Calculates a very quick drop interval for soft dropping Tetrominos.
     private var quickDropInterval: TimeInterval {
         standardDropInterval * 0.000001
@@ -60,25 +65,48 @@ class GameManager {
     }
     
     // MARK: - Game State Management
-    /// Starts or restarts the game, resetting the game state and timer.
-    func startGame() {
-        resetGame()
-        startGameTimer()
-    }
-    
     /// Resets the game to its initial state, ready for a new game to start.
-    private func resetGame() {
-        state = .playing
+    private func resetGameSession() {
+        state = .paused
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
         score = 0
         level = 1
+        currentTetromino = TetrominoFactory.generate()
+        nextTetromino = TetrominoFactory.generate()
         heldTetromino = nil
+        canHoldTetromino = true
     }
     
-    /// Ends the current game and stops the game timer.
-    private func gameOver() {
-        state = .gameOver
-        stopGameTimer()
+    /// Attempts to load the game session from UserDefaults.
+    /// - If there is saved data under the key "savedGameSession", it tries to decode this data into a `GameSession` object.
+    /// - Upon successful decoding, the game's state is updated with the loaded data
+    private func loadGameSession() {
+        if let savedGameSessionData = UserDefaults.standard.data(forKey: "savedGameSession"),
+           let session = try? JSONDecoder().decode(GameSession.self, from: savedGameSessionData) {
+            state = .paused
+            gameBoard = session.gameBoard
+            score = session.score
+            level = session.level
+            currentTetromino = session.currentTetromino
+            nextTetromino = session.nextTetromino
+            heldTetromino = session.heldTetromino
+            canHoldTetromino = session.canHoldTetromino
+        }
+    }
+    
+    /// Saves the current game session to UserDefaults.
+    /// - Encodes the `GameSession` object containing the current game state into JSON data.
+    /// - If encoding is successful, it saves this data under the key "savedGameSession".
+    /// - Sets the `isSessionSaved` flag based on whether the save operation was successful.
+    private func saveGameSession() {
+        let gameSession = GameSession(gameBoard: gameBoard, score: score, level: level, currentTetromino: currentTetromino, nextTetromino: nextTetromino, canHoldTetromino: canHoldTetromino)
+        
+        if let encodedData = try? JSONEncoder().encode(gameSession) {
+            UserDefaults.standard.set(encodedData, forKey: "savedGameSession")
+            isSessionSaved = true
+        } else {
+            isSessionSaved = false
+        }
     }
     
     // MARK: - Tetromino Management
@@ -88,7 +116,8 @@ class GameManager {
         nextTetromino = TetrominoFactory.generate()
         canHoldTetromino = true
         if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
-            gameOver()
+            state = .gameOver
+            stopGameTimer()
         }
     }
     
@@ -116,8 +145,8 @@ class GameManager {
         currentTetromino.shape.enumerated().forEach { y, row in
             row.enumerated().forEach { x, block in
                 guard block else { return }
-                let boardX = Int(currentTetromino.position.column) + x
-                let boardY = Int(currentTetromino.position.row) + y
+                let boardX = currentTetromino.position.column + x
+                let boardY = currentTetromino.position.row + y
 
                 if gameBoard[safeRow: boardY, safeColumn: boardX] != nil {
                     gameBoard[boardY][boardX] = GameCell(isFilled: true, color: currentTetromino.color)
@@ -141,10 +170,10 @@ class GameManager {
         gameBoard.insert(contentsOf: newLines, at: 0)
         score += scores[completedLineIndices.count]!
         level = score / 1000 + 1
-        standardDropInterval = max(0.3, 0.7 - (0.00001 * Double(level - 1)))
         if score > highScore {
             highScore = score
         }
+        saveGameSession()
     }
     
     /// Checks if a Tetromino's position is valid within the game board.
@@ -183,6 +212,17 @@ class GameManager {
     /// - Parameter action: The player action to handle.
     func handleAction(_ action: PlayerAction) {
         switch action {
+            case .newGame:
+                resetGameSession()
+            case .continueGame:
+                loadGameSession()
+            case .pause:
+                state = .paused
+                stopGameTimer()
+                saveGameSession()
+            case .resume:
+                state = .playing
+                startGameTimer()
             case .moveLeft:
                 moveTetromino(horizontalBy: -1)
             case .moveRight:
@@ -193,12 +233,6 @@ class GameManager {
                 rotateTetromino()
             case .drop:
                 dropTetromino(isSoftDropping: true)
-            case .pause:
-                state = .paused
-                stopGameTimer()
-            case .resume:
-                state = .playing
-                startGameTimer()
         }
     }
     
@@ -206,7 +240,7 @@ class GameManager {
     /// - Parameter deltaX: The horizontal movement amount.
     private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
-        let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + CGFloat(deltaX))
+        let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + deltaX)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
         }
@@ -232,16 +266,5 @@ class GameManager {
     private func rotateTetromino() {
         guard state == .playing else { return }
         currentTetromino.rotate(gameBoard: gameBoard)
-    }
-    
-    /// Toggles the game state between paused and playing.
-    private func togglePauseResume() {
-        if state == .playing {
-            state = .paused
-            stopGameTimer()
-        } else {
-            state = .playing
-            startGame()
-        }
     }
 }
