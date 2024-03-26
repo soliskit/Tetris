@@ -62,23 +62,16 @@ class GameManager {
     }
     
     // MARK: - Game State Management
-    /// Starts or restarts the game, resetting the game state and timer.
-    func startGame() {
-        resetGame()
-        startGameTimer()
-    }
-    
     /// Resets the game to its initial state, ready for a new game to start.
-    private func resetGame() {
+    private func resetGameSession() {
         state = .paused
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
+        score = 0
+        level = 1
         currentTetromino = TetrominoFactory.generate()
         nextTetromino = TetrominoFactory.generate()
         heldTetromino = nil
         canHoldTetromino = true
-        score = 0
-        level = 1
-        heldTetromino = nil
     }
     
     }
