@@ -99,7 +99,7 @@ class GameManager {
     /// - If encoding is successful, it saves this data under the key "savedGameSession".
     /// - Sets the `isSessionSaved` flag based on whether the save operation was successful.
     private func saveGameSession() {
-        let gameSession = GameSession(currentTetromino: currentTetromino, nextTetromino: nextTetromino, heldTetromino: heldTetromino, canHoldTetromino: canHoldTetromino, gameBoard: gameBoard, score: score, level: level)
+        let gameSession = GameSession(gameBoard: gameBoard, score: score, level: level, currentTetromino: currentTetromino, nextTetromino: nextTetromino, canHoldTetromino: canHoldTetromino)
         
         if let encodedData = try? JSONEncoder().encode(gameSession) {
             UserDefaults.standard.set(encodedData, forKey: "savedGameSession")
