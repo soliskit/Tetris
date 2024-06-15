@@ -11,6 +11,24 @@
 		590074BF2C1DFA4900A9C48F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 590074BE2C1DFA4900A9C48F /* ContentView.swift */; };
 		590074C12C1DFA4C00A9C48F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 590074C02C1DFA4C00A9C48F /* Assets.xcassets */; };
 		590074C52C1DFA4C00A9C48F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 590074C42C1DFA4C00A9C48F /* Preview Assets.xcassets */; };
+		CDAD63052C1DFB6A00A260F1 /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD63002C1DFB6A00A260F1 /* ButtonView.swift */; };
+		CDAD63062C1DFB6A00A260F1 /* PlayerAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F62C1DFB6A00A260F1 /* PlayerAction.swift */; };
+		CDAD63072C1DFB6A00A260F1 /* TetrominoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD63032C1DFB6A00A260F1 /* TetrominoPreview.swift */; };
+		CDAD63082C1DFB6A00A260F1 /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD63012C1DFB6A00A260F1 /* GameBoardView.swift */; };
+		CDAD63092C1DFB6A00A260F1 /* KeyboardInputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62FD2C1DFB6A00A260F1 /* KeyboardInputViewController.swift */; };
+		CDAD630A2C1DFB6A00A260F1 /* KeyboardInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD63022C1DFB6A00A260F1 /* KeyboardInputView.swift */; };
+		CDAD630B2C1DFB6A00A260F1 /* Tetromino.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F82C1DFB6A00A260F1 /* Tetromino.swift */; };
+		CDAD630C2C1DFB6A00A260F1 /* Direction.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F22C1DFB6A00A260F1 /* Direction.swift */; };
+		CDAD630D2C1DFB6A00A260F1 /* GameControllerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62FC2C1DFB6A00A260F1 /* GameControllerManager.swift */; };
+		CDAD630E2C1DFB6A00A260F1 /* CustomColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F12C1DFB6A00A260F1 /* CustomColor.swift */; };
+		CDAD630F2C1DFB6A00A260F1 /* GameCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F32C1DFB6A00A260F1 /* GameCell.swift */; };
+		CDAD63102C1DFB6A00A260F1 /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F72C1DFB6A00A260F1 /* Position.swift */; };
+		CDAD63112C1DFB6A00A260F1 /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F52C1DFB6A00A260F1 /* GameState.swift */; };
+		CDAD63122C1DFB6A00A260F1 /* GameSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62F42C1DFB6A00A260F1 /* GameSession.swift */; };
+		CDAD63132C1DFB6A00A260F1 /* TetrominoFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62FE2C1DFB6A00A260F1 /* TetrominoFactory.swift */; };
+		CDAD63142C1DFB6A00A260F1 /* GameControlButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62FB2C1DFB6A00A260F1 /* GameControlButtonStyle.swift */; };
+		CDAD63152C1DFB6A00A260F1 /* Array.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD62FA2C1DFB6A00A260F1 /* Array.swift */; };
+		CDAD63172C1DFB7400A260F1 /* GameManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDAD63162C1DFB7400A260F1 /* GameManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +38,24 @@
 		590074C02C1DFA4C00A9C48F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		590074C22C1DFA4C00A9C48F /* Tetris.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Tetris.entitlements; sourceTree = "<group>"; };
 		590074C42C1DFA4C00A9C48F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		CDAD62F12C1DFB6A00A260F1 /* CustomColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColor.swift; sourceTree = "<group>"; };
+		CDAD62F22C1DFB6A00A260F1 /* Direction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Direction.swift; sourceTree = "<group>"; };
+		CDAD62F32C1DFB6A00A260F1 /* GameCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameCell.swift; sourceTree = "<group>"; };
+		CDAD62F42C1DFB6A00A260F1 /* GameSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSession.swift; sourceTree = "<group>"; };
+		CDAD62F52C1DFB6A00A260F1 /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
+		CDAD62F62C1DFB6A00A260F1 /* PlayerAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerAction.swift; sourceTree = "<group>"; };
+		CDAD62F72C1DFB6A00A260F1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
+		CDAD62F82C1DFB6A00A260F1 /* Tetromino.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tetromino.swift; sourceTree = "<group>"; };
+		CDAD62FA2C1DFB6A00A260F1 /* Array.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Array.swift; sourceTree = "<group>"; };
+		CDAD62FB2C1DFB6A00A260F1 /* GameControlButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControlButtonStyle.swift; sourceTree = "<group>"; };
+		CDAD62FC2C1DFB6A00A260F1 /* GameControllerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameControllerManager.swift; sourceTree = "<group>"; };
+		CDAD62FD2C1DFB6A00A260F1 /* KeyboardInputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardInputViewController.swift; sourceTree = "<group>"; };
+		CDAD62FE2C1DFB6A00A260F1 /* TetrominoFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TetrominoFactory.swift; sourceTree = "<group>"; };
+		CDAD63002C1DFB6A00A260F1 /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
+		CDAD63012C1DFB6A00A260F1 /* GameBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoardView.swift; sourceTree = "<group>"; };
+		CDAD63022C1DFB6A00A260F1 /* KeyboardInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardInputView.swift; sourceTree = "<group>"; };
+		CDAD63032C1DFB6A00A260F1 /* TetrominoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TetrominoPreview.swift; sourceTree = "<group>"; };
+		CDAD63162C1DFB7400A260F1 /* GameManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,7 +88,11 @@
 		590074BB2C1DFA4900A9C48F /* Tetris */ = {
 			isa = PBXGroup;
 			children = (
+				CDAD62F92C1DFB6A00A260F1 /* Model */,
+				CDAD63042C1DFB6A00A260F1 /* View */,
+				CDAD62FF2C1DFB6A00A260F1 /* Support */,
 				590074BC2C1DFA4900A9C48F /* TetrisApp.swift */,
+				CDAD63162C1DFB7400A260F1 /* GameManager.swift */,
 				590074BE2C1DFA4900A9C48F /* ContentView.swift */,
 				590074C02C1DFA4C00A9C48F /* Assets.xcassets */,
 				590074C22C1DFA4C00A9C48F /* Tetris.entitlements */,
@@ -67,6 +107,44 @@
 				590074C42C1DFA4C00A9C48F /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		CDAD62F92C1DFB6A00A260F1 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				CDAD62F12C1DFB6A00A260F1 /* CustomColor.swift */,
+				CDAD62F22C1DFB6A00A260F1 /* Direction.swift */,
+				CDAD62F32C1DFB6A00A260F1 /* GameCell.swift */,
+				CDAD62F42C1DFB6A00A260F1 /* GameSession.swift */,
+				CDAD62F52C1DFB6A00A260F1 /* GameState.swift */,
+				CDAD62F62C1DFB6A00A260F1 /* PlayerAction.swift */,
+				CDAD62F72C1DFB6A00A260F1 /* Position.swift */,
+				CDAD62F82C1DFB6A00A260F1 /* Tetromino.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		CDAD62FF2C1DFB6A00A260F1 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				CDAD62FA2C1DFB6A00A260F1 /* Array.swift */,
+				CDAD62FB2C1DFB6A00A260F1 /* GameControlButtonStyle.swift */,
+				CDAD62FC2C1DFB6A00A260F1 /* GameControllerManager.swift */,
+				CDAD62FD2C1DFB6A00A260F1 /* KeyboardInputViewController.swift */,
+				CDAD62FE2C1DFB6A00A260F1 /* TetrominoFactory.swift */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+		CDAD63042C1DFB6A00A260F1 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				CDAD63002C1DFB6A00A260F1 /* ButtonView.swift */,
+				CDAD63012C1DFB6A00A260F1 /* GameBoardView.swift */,
+				CDAD63022C1DFB6A00A260F1 /* KeyboardInputView.swift */,
+				CDAD63032C1DFB6A00A260F1 /* TetrominoPreview.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,6 +218,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				590074BF2C1DFA4900A9C48F /* ContentView.swift in Sources */,
+				CDAD63052C1DFB6A00A260F1 /* ButtonView.swift in Sources */,
+				CDAD63062C1DFB6A00A260F1 /* PlayerAction.swift in Sources */,
+				CDAD63072C1DFB6A00A260F1 /* TetrominoPreview.swift in Sources */,
+				CDAD63082C1DFB6A00A260F1 /* GameBoardView.swift in Sources */,
+				CDAD63092C1DFB6A00A260F1 /* KeyboardInputViewController.swift in Sources */,
+				CDAD630A2C1DFB6A00A260F1 /* KeyboardInputView.swift in Sources */,
+				CDAD630B2C1DFB6A00A260F1 /* Tetromino.swift in Sources */,
+				CDAD630C2C1DFB6A00A260F1 /* Direction.swift in Sources */,
+				CDAD63172C1DFB7400A260F1 /* GameManager.swift in Sources */,
+				CDAD630D2C1DFB6A00A260F1 /* GameControllerManager.swift in Sources */,
+				CDAD630E2C1DFB6A00A260F1 /* CustomColor.swift in Sources */,
+				CDAD630F2C1DFB6A00A260F1 /* GameCell.swift in Sources */,
+				CDAD63102C1DFB6A00A260F1 /* Position.swift in Sources */,
+				CDAD63112C1DFB6A00A260F1 /* GameState.swift in Sources */,
+				CDAD63122C1DFB6A00A260F1 /* GameSession.swift in Sources */,
+				CDAD63132C1DFB6A00A260F1 /* TetrominoFactory.swift in Sources */,
+				CDAD63142C1DFB6A00A260F1 /* GameControlButtonStyle.swift in Sources */,
+				CDAD63152C1DFB6A00A260F1 /* Array.swift in Sources */,
 				590074BD2C1DFA4900A9C48F /* TetrisApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
