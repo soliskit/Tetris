@@ -42,11 +42,11 @@ class GameControllerManager {
     
     private func configure(controller: GCController) {
         controller.extendedGamepad?.valueChangedHandler = { [weak self] (gamepad, _) in
-            self?.handeButtonInput(gamepad: gamepad)
+            self?.handleButtonInput(gamepad: gamepad)
         }
     }
     
-    private func handeButtonInput(gamepad: GCExtendedGamepad) {
+    private func handleButtonInput(gamepad: GCExtendedGamepad) {
         if gameManager?.state == .playing && gamepad.buttonMenu.isPressed {
             gameManager?.handleAction(.pause)
         }
