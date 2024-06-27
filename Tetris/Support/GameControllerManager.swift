@@ -70,8 +70,11 @@ final class GameControllerManager {
     
     private func handleJoystickInput(gamepad: GCExtendedGamepad) async {
         let xValue = gamepad.leftThumbstick.xAxis.value
+        let yValue = gamepad.leftThumbstick.yAxis.value
         
-        if xValue < -0.5 {
+        if yValue < -0.5 {
+            await startMoving(.down)
+        } else if xValue < -0.5 {
             await startMoving(.left)
         } else if xValue > 0.5 {
             await startMoving(.right)
@@ -99,6 +102,8 @@ final class GameControllerManager {
             await gameManager?.handleAction(.moveLeft)
         case .right:
             await gameManager?.handleAction(.moveRight)
+        case .down:
+            await gameManager?.handleAction(.drop)
         case .none:
             break
         }
