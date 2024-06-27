@@ -54,17 +54,17 @@ final class GameControllerManager {
     }
     
     private func handleButtonInput(gamepad: GCExtendedGamepad) async {
-        if gameManager?.state == .playing && gamepad.buttonMenu.isPressed {
+        if gamepad.leftTrigger.isPressed {
             await gameManager?.handleAction(.pause)
         }
-        if gameManager?.state == .paused && gamepad.buttonMenu.isPressed {
+        if gamepad.rightTrigger.isPressed {
             await gameManager?.handleAction(.resume)
-        }
-        if gamepad.buttonB.isPressed {
-            await gameManager?.handleAction(.rotate)
         }
         if gamepad.buttonX.isPressed {
             await gameManager?.handleAction(.hold)
+        }
+        if gamepad.buttonA.isPressed {
+            await gameManager?.handleAction(.rotate)
         }
     }
     
