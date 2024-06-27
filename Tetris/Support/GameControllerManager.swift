@@ -7,7 +7,8 @@
 
 import GameController
 
-class GameControllerManager {
+@MainActor
+final class GameControllerManager {
     weak var gameManager: GameManager?
     private var movementDirection: Direction?
     private var movementTimer: Timer?
@@ -19,7 +20,9 @@ class GameControllerManager {
     
     deinit {
         NotificationCenter.default.removeObserver(self)
-        stopMoving()
+        DispatchQueue.main.async {
+            self.stopMoving()
+        }
     }
     
     private func setupControllers() {
@@ -37,55 +40,67 @@ class GameControllerManager {
     }
     
     @objc func controllerDidDisconnect(notification: Notification) {
-        
+        // Handle disconnection if needed
     }
     
     private func configure(controller: GCController) {
         controller.extendedGamepad?.valueChangedHandler = { [weak self] (gamepad, _) in
-            self?.handleButtonInput(gamepad: gamepad)
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.handleButtonInput(gamepad: gamepad)
+                await self.handleJoystickInput(gamepad: gamepad)
+            }
         }
     }
     
-    private func handleButtonInput(gamepad: GCExtendedGamepad) {
+    private func handleButtonInput(gamepad: GCExtendedGamepad) async {
         if gameManager?.state == .playing && gamepad.buttonMenu.isPressed {
-            gameManager?.handleAction(.pause)
+            await gameManager?.handleAction(.pause)
         }
         if gameManager?.state == .paused && gamepad.buttonMenu.isPressed {
-            gameManager?.handleAction(.resume)
+            await gameManager?.handleAction(.resume)
         }
         if gamepad.buttonB.isPressed {
-            gameManager?.handleAction(.rotate)
+            await gameManager?.handleAction(.rotate)
         }
         if gamepad.buttonX.isPressed {
-            gameManager?.handleAction(.hold)
+            await gameManager?.handleAction(.hold)
         }
     }
     
-    private func handleJoystickInput(gamepad: GCExtendedGamepad) {
+    private func handleJoystickInput(gamepad: GCExtendedGamepad) async {
         let xValue = gamepad.leftThumbstick.xAxis.value
         
         if xValue < -0.5 {
-            startMoving(.left)
+            await startMoving(.left)
         } else if xValue > 0.5 {
-            startMoving(.right)
+            await startMoving(.right)
         } else {
-            stopMoving()
+            DispatchQueue.main.async {
+                self.stopMoving()
+            }
         }
     }
     
-    private func startMoving(_ direction: Direction) {
+    private func startMoving(_ direction: Direction) async {
         movementDirection = direction
         movementTimer?.invalidate()
         movementTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            switch self.movementDirection {
-                case .left:
-                    self.gameManager?.handleAction(.moveLeft)
-                case .right:
-                    self.gameManager?.handleAction(.moveRight)
-                case .none:
-                    break
+            Task { [weak self] in
+                guard let self = self else { return }
+                await self.performMovement()
             }
+        }
+    }
+    
+    private func performMovement() async {
+        switch movementDirection {
+        case .left:
+            await gameManager?.handleAction(.moveLeft)
+        case .right:
+            await gameManager?.handleAction(.moveRight)
+        case .none:
+            break
         }
     }
     

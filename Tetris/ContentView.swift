@@ -8,66 +8,76 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var gameManager = GameManager()
+    @State private var gameManager: GameManager? = nil
     @AppStorage("highScore") private var highScore: Int = 0
     
     var body: some View {
         VStack {
-            Text("Score: \(gameManager.score)")
+            Text("Score: \(gameManager?.score ?? 0)")
                 .font(.headline)
             Text("High Score: \(highScore)")
                 .font(.caption)
             
             HStack {
-                TetrominoPreview(tetromino: gameManager.heldTetromino)
+                TetrominoPreview(tetromino: gameManager?.heldTetromino)
                     .onTapGesture {
-                        gameManager.handleAction(.hold)
+                        Task { await gameManager?.handleAction(.hold) }
                     }
                 Spacer()
-                TetrominoPreview(tetromino: gameManager.nextTetromino)
+                TetrominoPreview(tetromino: gameManager?.nextTetromino)
             }
-            
-            GameBoardView(gameManager: gameManager)
-                .aspectRatio(0.5, contentMode: .fit)
-                .padding()
-                .background(.black.opacity(0.5))
-                .cornerRadius(10)
-                .gesture(
-                    DragGesture(minimumDistance: 20)
-                        .onEnded { gesture in
-                            if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                                if gesture.translation.width < 0 {
-                                    gameManager.handleAction(.moveLeft)
+            if let gameManager = gameManager {
+                GameBoardView(gameManager: gameManager)
+                    .aspectRatio(0.5, contentMode: .fit)
+                    .padding()
+                    .background(.black.opacity(0.5))
+                    .cornerRadius(10)
+                    .gesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { gesture in
+                                if abs(gesture.translation.width) > abs(gesture.translation.height) {
+                                    if gesture.translation.width < 0 {
+                                        Task { await gameManager.handleAction(.moveLeft) }
+                                    } else {
+                                        Task { await gameManager.handleAction(.moveRight) }
+                                    }
                                 } else {
-                                    gameManager.handleAction(.moveRight)
-                                }
-                            } else {
-                                if gesture.translation.height > 0 {
-                                    gameManager.handleAction(.drop)
+                                    if gesture.translation.height > 0 {
+                                        Task { await gameManager.handleAction(.drop) }
+                                    }
                                 }
                             }
-                        }
-                )
-                .onTapGesture {
-                    gameManager.handleAction(.rotate)
-                }
-            
-            ButtonView(gameManager: gameManager)
+                    )
+                    .onTapGesture {
+                        Task { await gameManager.handleAction(.rotate) }
+                    }
+                
+                ButtonView(gameManager: gameManager)
+            } else {
+                EmptyView()
+            }
+        }
+        .onAppear {
+            gameManager = GameManager()
         }
         .padding()
         .background(.teal.opacity(0.75))
         .background {
             KeyboardInputView(
-                moveLeft: { gameManager.handleAction(.moveLeft) },
-                moveRight: { gameManager.handleAction(.moveRight) },
-                rotate: { gameManager.handleAction(.rotate) },
-                drop: { gameManager.handleAction(.drop) },
-                hold: { gameManager.handleAction(.hold) }
+                moveLeft: { Task { await gameManager?.handleAction(.moveLeft) } },
+                moveRight: { Task { await gameManager?.handleAction(.moveRight) } },
+                rotate: { Task { await gameManager?.handleAction(.rotate) } },
+                drop: { Task { await gameManager?.handleAction(.drop) } },
+                hold: { Task { await gameManager?.handleAction(.hold) } }
             )
         }
     }
 }
 
 #Preview("Content View") {
-    ContentView(gameManager: GameManager())
+    @Previewable @State var gameManager: GameManager? = nil
+    ContentView()
+        .onAppear {
+            gameManager = GameManager()
+        }
 }

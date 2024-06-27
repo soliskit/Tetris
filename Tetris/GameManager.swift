@@ -8,8 +8,9 @@
 import SwiftUI
 
 /// Manages the overall game logic, state, and interactions for Tetris.
+@MainActor
 @Observable
-class GameManager {
+final class GameManager {
     // MARK: - Properties
     /// Stores the highest score achieved across sessions.
     @ObservationIgnored
@@ -210,7 +211,7 @@ class GameManager {
     // MARK: - Gameplay Controls
     /// Handles player actions, translating them into game actions such as moving or rotating the Tetromino.
     /// - Parameter action: The player action to handle.
-    func handleAction(_ action: PlayerAction) {
+    func handleAction(_ action: PlayerAction) async {
         switch action {
             case .newGame:
                 resetGameSession()
