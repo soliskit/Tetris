@@ -15,12 +15,12 @@ struct ButtonView: View {
         HStack {
             if gameManager.state == .gameOver {
                 Button("New Game") {
-                    gameManager.handleAction(.newGame)
+                    Task { await gameManager.handleAction(.newGame) }
                 }
                 .buttonStyle(GameControlButtonStyle())
                 if isSessionSaved {
                     Button("Continue") {
-                        gameManager.handleAction(.continueGame)
+                        Task { await gameManager.handleAction(.continueGame) }
                     }
                     .buttonStyle(GameControlButtonStyle())
                 }
@@ -28,7 +28,7 @@ struct ButtonView: View {
                 Spacer()
                 if gameManager.state == .paused {
                     Button(action: {
-                        gameManager.handleAction(.resume)
+                        Task { await gameManager.handleAction(.resume) }
                     }, label: {
                         Image(systemName: "play.circle.fill")
                             .resizable()
@@ -37,7 +37,7 @@ struct ButtonView: View {
                     })
                 } else if gameManager.state == .playing {
                     Button(action: {
-                        gameManager.handleAction(.pause)
+                        Task { await gameManager.handleAction(.pause) }
                     }, label: {
                         Image(systemName: "pause.circle.fill")
                             .resizable()
