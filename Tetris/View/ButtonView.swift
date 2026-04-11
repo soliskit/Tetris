@@ -10,7 +10,7 @@ import SwiftUI
 struct ButtonView: View {
     @AppStorage("isSessionSaved") private var isSessionSaved: Bool = false
     var gameManager: GameManager
-    
+
     var body: some View {
         HStack {
             if gameManager.state == .gameOver {
@@ -34,7 +34,9 @@ struct ButtonView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 50, height: 50)
+                            .foregroundStyle(.white)
                     })
+                    .glassEffect(.regular, in: .circle)
                 } else if gameManager.state == .playing {
                     Button(action: {
                         gameManager.handleAction(.pause)
@@ -43,7 +45,9 @@ struct ButtonView: View {
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 50, height: 50)
+                            .foregroundStyle(.white)
                     })
+                    .glassEffect(.regular, in: .circle)
                 }
             }
         }

@@ -7,6 +7,6 @@
 
 import Foundation
 
-enum Direction {
+enum Direction: Sendable {
     case left, right
 }

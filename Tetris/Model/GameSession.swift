@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct GameSession: Codable {
+struct GameSession: Codable, Sendable {
     var gameBoard: [[GameCell?]]
     var score: Int
     var level: Int

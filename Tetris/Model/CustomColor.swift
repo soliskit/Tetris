@@ -7,29 +7,21 @@
 
 import SwiftUI
 
-struct CustomColor: Codable, Equatable {
+struct CustomColor: Codable, Equatable, Sendable {
     let red: Double
     let green: Double
     let blue: Double
     let opacity: Double
-    
+
     var value: Color {
         Color(red: red, green: green, blue: blue, opacity: opacity)
     }
-    
+
     init(from color: Color) {
-        let uiColor = UIColor(color)
-        
-        var r: CGFloat = 0
-        var g: CGFloat = 0
-        var b: CGFloat = 0
-        var a: CGFloat = 0
-        
-        uiColor.getRed(&r, green: &g, blue: &b, alpha: &a)
-        
-        self.red = Double(r)
-        self.green = Double(g)
-        self.blue = Double(b)
-        self.opacity = Double(a)
+        let resolved = color.resolve(in: EnvironmentValues())
+        self.red = Double(resolved.red)
+        self.green = Double(resolved.green)
+        self.blue = Double(resolved.blue)
+        self.opacity = Double(resolved.opacity)
     }
 }
