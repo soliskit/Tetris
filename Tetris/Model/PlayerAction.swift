@@ -11,7 +11,7 @@ import Foundation
 ///
 /// This enum encapsulates the different types of inputs a player can provide while playing.
 /// It includes movements and rotations of the current tetromino, holding a tetromino, and game control actions like pausing and resuming the game.
-enum PlayerAction {
+enum PlayerAction: Sendable {
     /// Starts a new game, resetting the game state and board.
     case newGame
     /// Continues a saved game from where it was left off.
