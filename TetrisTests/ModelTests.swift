@@ -79,7 +79,7 @@ struct ModelTests {
         }
 
         @Test func storesRGBComponents() {
-            let color = CustomColor(from: .red)
+            let color = CustomColor(from: Color(red: 1.0, green: 0.0, blue: 0.0))
             #expect(color.red > 0.9)
             #expect(color.green < 0.1)
             #expect(color.blue < 0.1)
