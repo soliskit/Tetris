@@ -11,6 +11,7 @@ struct ContentView: View {
     @State var gameManager = GameManager()
     @AppStorage("highScore") private var highScore: Int = 0
     @State private var dragCellOffset: Int = 0
+    @State private var dragRowOffset: Int = 0
     @State private var cellWidth: CGFloat = 32
 
     var body: some View {
@@ -64,22 +65,28 @@ struct ContentView: View {
                         .gesture(
                             DragGesture(minimumDistance: 5)
                                 .onChanged { gesture in
-                                    let newOffset = Int(gesture.translation.width / cellWidth)
-                                    let delta = newOffset - dragCellOffset
-                                    if delta != 0 {
-                                        let action: PlayerAction = delta > 0 ? .moveRight : .moveLeft
-                                        for _ in 0..<abs(delta) {
+                                    let newColOffset = Int(gesture.translation.width / cellWidth)
+                                    let colDelta = newColOffset - dragCellOffset
+                                    if colDelta != 0 {
+                                        let action: PlayerAction = colDelta > 0 ? .moveRight : .moveLeft
+                                        for _ in 0..<abs(colDelta) {
                                             gameManager.handleAction(action)
                                         }
-                                        dragCellOffset = newOffset
+                                        dragCellOffset = newColOffset
+                                    }
+
+                                    let newRowOffset = max(0, Int(gesture.translation.height / cellWidth))
+                                    let rowDelta = newRowOffset - dragRowOffset
+                                    if rowDelta > 0 {
+                                        for _ in 0..<rowDelta {
+                                            gameManager.handleAction(.drop)
+                                        }
+                                        dragRowOffset = newRowOffset
                                     }
                                 }
-                                .onEnded { gesture in
+                                .onEnded { _ in
                                     dragCellOffset = 0
-                                    if abs(gesture.translation.height) > abs(gesture.translation.width)
-                                        && gesture.translation.height > 0 {
-                                        gameManager.handleAction(.drop)
-                                    }
+                                    dragRowOffset = 0
                                 }
                         )
                         .onTapGesture {
