@@ -53,11 +53,12 @@ class GameControllerManager {
     }
 
     private func processInput(menuPressed: Bool, bPressed: Bool, xPressed: Bool, xAxis: Float) {
-        if gameManager?.state == .playing && menuPressed {
-            gameManager?.handleAction(.pause)
-        }
-        if gameManager?.state == .paused && menuPressed {
-            gameManager?.handleAction(.resume)
+        if menuPressed {
+            if gameManager?.state == .playing {
+                gameManager?.handleAction(.pause)
+            } else if gameManager?.state == .paused {
+                gameManager?.handleAction(.resume)
+            }
         }
         if bPressed {
             gameManager?.handleAction(.rotate)
@@ -78,6 +79,8 @@ class GameControllerManager {
     private func startMoving(_ direction: Direction) {
         movementDirection = direction
         movementTask?.cancel()
+        let action: PlayerAction = direction == .left ? .moveLeft : .moveRight
+        gameManager?.handleAction(action)
         movementTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(100))

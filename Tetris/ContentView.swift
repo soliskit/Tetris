@@ -79,7 +79,7 @@ struct ContentView: View {
                                     let rowDelta = newRowOffset - dragRowOffset
                                     if rowDelta > 0 {
                                         for _ in 0..<rowDelta {
-                                            gameManager.handleAction(.drop)
+                                            gameManager.softDrop()
                                         }
                                         dragRowOffset = newRowOffset
                                     }
