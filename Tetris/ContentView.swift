@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     @State var gameManager = GameManager()
     @AppStorage("highScore") private var highScore: Int = 0
+    @State private var dragCellOffset: Int = 0
 
     var body: some View {
         ZStack {
@@ -55,18 +56,24 @@ struct ContentView: View {
                         .padding(8)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
                         .gesture(
-                            DragGesture(minimumDistance: 20)
+                            DragGesture(minimumDistance: 10)
+                                .onChanged { gesture in
+                                    let cellWidth: CGFloat = 32
+                                    let newOffset = Int(gesture.translation.width / cellWidth)
+                                    let delta = newOffset - dragCellOffset
+                                    if delta != 0 {
+                                        let action: PlayerAction = delta > 0 ? .moveRight : .moveLeft
+                                        for _ in 0..<abs(delta) {
+                                            gameManager.handleAction(action)
+                                        }
+                                        dragCellOffset = newOffset
+                                    }
+                                }
                                 .onEnded { gesture in
-                                    if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                                        if gesture.translation.width < 0 {
-                                            gameManager.handleAction(.moveLeft)
-                                        } else {
-                                            gameManager.handleAction(.moveRight)
-                                        }
-                                    } else {
-                                        if gesture.translation.height > 0 {
-                                            gameManager.handleAction(.drop)
-                                        }
+                                    dragCellOffset = 0
+                                    if abs(gesture.translation.height) > abs(gesture.translation.width)
+                                        && gesture.translation.height > 0 {
+                                        gameManager.handleAction(.drop)
                                     }
                                 }
                         )
