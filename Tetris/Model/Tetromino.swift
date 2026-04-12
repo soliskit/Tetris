@@ -53,7 +53,7 @@ struct Tetromino: Identifiable, Equatable, Codable, Sendable {
     mutating func rotate(gameBoard: [[GameCell?]]) {
         let clockwiseRotationState = (rotationState + 1) % rotations.count
         let clockwiseShape = rotations[clockwiseRotationState]
-        let clockwiseTestPositions = wallKickData[clockwiseRotationState].map {
+        let clockwiseTestPositions = wallKickData[rotationState].map {
             Position(row: position.row + $0.row, column: position.column + $0.column)
         }
         if let validClockwisePosition = clockwiseTestPositions.first(where: {
@@ -69,7 +69,7 @@ struct Tetromino: Identifiable, Equatable, Codable, Sendable {
         let counterClockwiseRotationState = (rotationState - 1 + rotations.count) % rotations.count
         let counterClockwiseShape = rotations[counterClockwiseRotationState]
         let counterClockwiseTestPositions = wallKickData[counterClockwiseRotationState].map {
-            Position(row: position.row + $0.row, column: position.column + $0.column)
+            Position(row: position.row - $0.row, column: position.column - $0.column)
         }
         
         for testPosition in counterClockwiseTestPositions {
