@@ -11,6 +11,7 @@ struct ContentView: View {
     @State var gameManager = GameManager()
     @AppStorage("highScore") private var highScore: Int = 0
     @State private var dragCellOffset: Int = 0
+    @State private var cellWidth: CGFloat = 32
 
     var body: some View {
         ZStack {
@@ -53,12 +54,16 @@ struct ContentView: View {
 
                     GameBoardView(gameManager: gameManager)
                         .aspectRatio(0.5, contentMode: .fit)
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.size.width / 10
+                        } action: { newValue in
+                            cellWidth = newValue
+                        }
                         .padding(8)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
                         .gesture(
-                            DragGesture(minimumDistance: 10)
+                            DragGesture(minimumDistance: 5)
                                 .onChanged { gesture in
-                                    let cellWidth: CGFloat = 32
                                     let newOffset = Int(gesture.translation.width / cellWidth)
                                     let delta = newOffset - dragCellOffset
                                     if delta != 0 {
