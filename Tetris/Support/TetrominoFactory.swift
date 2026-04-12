@@ -26,10 +26,8 @@ struct TetrominoFactory {
                     [[false, false, true, false], [false, false, true, false], [false, false, true, false], [false, false, true, false]]
                 ],
                 wallKickData: [
-                    [Position(row: 0, column: -1), Position(row: 0, column: 2), Position(row: -1, column: 2), Position(row: 2, column: -1)],
-                    [Position(row: 0, column: 1), Position(row: 0, column: -2), Position(row: 1, column: -2), Position(row: -2, column: 1)],
-                    [Position(row: 0, column: 2), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 2)],
-                    [Position(row: 0, column: -2), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: -2)]
+                    [Position(row: 0, column: 1), Position(row: 0, column: -1), Position(row: 0, column: 2), Position(row: 1, column: -1), Position(row: -2, column: 2)],
+                    [Position(row: 0, column: -1), Position(row: 0, column: 1), Position(row: 0, column: -2), Position(row: -1, column: 1), Position(row: 2, column: -2)]
                 ]
             ),
             // O Shape
@@ -55,14 +53,14 @@ struct TetrominoFactory {
                 position: Position(row: 0, column: 4),
                 rotations: [
                     [[false, true, false], [true, true, true], [false, false, false]],
-                    [[false, true], [true, true], [false, true]],
+                    [[true, false], [true, true], [true, false]],
                     [[false, false, false], [true, true, true], [false, true, false]],
-                    [[true, false], [true, true], [true, false]]
+                    [[false, true], [true, true], [false, true]]
                 ],
                 wallKickData: [
-                    [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: -1, column: -1), Position(row: 2, column: 0), Position(row: 2, column: -1)],
+                    [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: 0), Position(row: 2, column: 1)],
-                    [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: 0), Position(row: 2, column: 1)],
+                    [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: 1, column: 1), Position(row: -2, column: 0), Position(row: -2, column: 1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: -1, column: -1), Position(row: 2, column: 0), Position(row: 2, column: -1)]
                 ]),
             // S Shape
@@ -115,10 +113,10 @@ struct TetrominoFactory {
                 color: CustomColor(from: .blue),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, false, true], [true, true, true], [false, false, false]],
-                    [[true, false], [true, false], [true, true]],
-                    [[false, false, false], [true, true, true], [true, false, false]],
-                    [[true, true], [false, true], [false, true]]
+                    [[true, false, false], [true, true, true], [false, false, false]],
+                    [[true, true], [true, false], [true, false]],
+                    [[false, false, false], [true, true, true], [false, false, true]],
+                    [[false, true], [false, true], [true, true]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
