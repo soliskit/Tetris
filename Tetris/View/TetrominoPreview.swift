@@ -39,6 +39,7 @@ struct TetrominoPreview: View {
             .frame(width: boardWidth, height: boardHeight)
         }
         .frame(width: 100, height: 100)
+        .contentShape(Rectangle())
         .clipped()
         .glassEffect(.regular, in: .rect(cornerRadius: 16))
     }
