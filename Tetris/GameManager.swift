@@ -185,6 +185,19 @@ class GameManager {
         }
     }
 
+    func softDrop() {
+        guard state == .playing else { return }
+        let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
+        if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
+            currentTetromino.position = newPosition
+        } else {
+            lockTetrominoInPlace()
+            clearFullRows()
+            generateNextTetromino()
+            startGameLoop()
+        }
+    }
+
     private func moveTetromino(horizontalBy deltaX: Int) {
         guard state == .playing else { return }
         let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + deltaX)
@@ -195,14 +208,25 @@ class GameManager {
 
     private func holdTetromino() {
         guard state == .playing, canHoldTetromino else { return }
-        let previousPosition = currentTetromino.position
-        if let tetrominoToSwap = heldTetromino, isValidTetrominoPosition(tetromino: tetrominoToSwap, at: previousPosition) {
-            heldTetromino = currentTetromino
+        if var tetrominoToSwap = heldTetromino {
+            // Reset held piece to spawn state
+            tetrominoToSwap.shape = tetrominoToSwap.rotations[0]
+            tetrominoToSwap.rotationState = 0
+            let spawnPosition = tetrominoToSwap.position
+            guard isValidTetrominoPosition(tetromino: tetrominoToSwap, at: spawnPosition) else { return }
+            // Store current piece (reset to spawn state)
+            var pieceToHold = currentTetromino
+            pieceToHold.shape = pieceToHold.rotations[0]
+            pieceToHold.rotationState = 0
+            heldTetromino = pieceToHold
             currentTetromino = tetrominoToSwap
-            currentTetromino.position = previousPosition
+            currentTetromino.position = spawnPosition
             canHoldTetromino = false
-        } else if heldTetromino == nil {
-            heldTetromino = currentTetromino
+        } else {
+            var pieceToHold = currentTetromino
+            pieceToHold.shape = pieceToHold.rotations[0]
+            pieceToHold.rotationState = 0
+            heldTetromino = pieceToHold
             generateNextTetromino()
             canHoldTetromino = false
         }
