@@ -31,6 +31,19 @@ struct GameBoardView: View {
                         }
                     }
                 }
+
+                // Ghost piece
+                let ghostCells = gameManager.ghostCells()
+                let ghostColor = gameManager.currentTetromino.color.value
+                ForEach(0..<ghostCells.count, id: \.self) { index in
+                    let cell = ghostCells[index]
+                    RoundedRectangle(cornerRadius: 3)
+                        .stroke(ghostColor.opacity(0.5), lineWidth: 1.5)
+                        .frame(width: blockSize - 1, height: blockSize - 1)
+                        .position(x: blockSize * CGFloat(cell.col) + blockSize / 2,
+                                  y: blockSize * CGFloat(cell.row) + blockSize / 2)
+                }                                                     
+
                 let tetromino = gameManager.currentTetromino
                 ForEach(0..<tetromino.shape.count, id: \.self) { row in
                     ForEach(0..<tetromino.shape[row].count, id: \.self) { column in

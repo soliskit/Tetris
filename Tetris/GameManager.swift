@@ -19,8 +19,12 @@ class GameManager {
     private let rows: Int = 20
     private let columns: Int = 10
     private var gameLoopTask: Task<Void, Never>?
+    private var lockDelayTask: Task<Void, Never>?
+    private var lockDelayResetCount: Int = 0
+    private let maxLockDelayResets: Int = 15
+    private let lockDelayInterval: TimeInterval = 0.5
     var currentTetromino: Tetromino
-    var nextTetromino: Tetromino
+    var nextTetrominos: [Tetromino]
     var heldTetromino: Tetromino?
     var canHoldTetromino: Bool = true
     var gameBoard: [[GameCell]]
@@ -39,7 +43,7 @@ class GameManager {
     // MARK: - Initialization
     init() {
         currentTetromino = TetrominoFactory.generate()
-        nextTetromino = TetrominoFactory.generate()
+        nextTetrominos = (0..<3).map { _ in TetrominoFactory.generate() }
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
         gameControllerManager = GameControllerManager(gameManager: self)
     }
@@ -59,9 +63,10 @@ class GameManager {
         score = 0
         level = 1
         currentTetromino = TetrominoFactory.generate()
-        nextTetromino = TetrominoFactory.generate()
+        nextTetrominos = (0..<3).map { _ in TetrominoFactory.generate() }
         heldTetromino = nil
         canHoldTetromino = true
+        cancelLockDelay()
         isSessionSaved = false
     }
 
@@ -77,13 +82,13 @@ class GameManager {
         score = session.score
         level = session.level
         currentTetromino = session.currentTetromino
-        nextTetromino = session.nextTetromino
+        nextTetrominos = session.nextTetrominos
         heldTetromino = session.heldTetromino
         canHoldTetromino = session.canHoldTetromino
     }
 
     private func saveGameSession() {
-        let gameSession = GameSession(gameBoard: gameBoard, score: score, level: level, currentTetromino: currentTetromino, nextTetromino: nextTetromino, heldTetromino: heldTetromino, canHoldTetromino: canHoldTetromino)
+        let gameSession = GameSession(gameBoard: gameBoard, score: score, level: level, currentTetromino: currentTetromino, nextTetrominos: nextTetrominos, heldTetromino: heldTetromino, canHoldTetromino: canHoldTetromino)
         if let encodedData = try? JSONEncoder().encode(gameSession) {
             UserDefaults.standard.set(encodedData, forKey: "savedGameSession")
             isSessionSaved = true
@@ -94,14 +99,15 @@ class GameManager {
 
     // MARK: - Tetromino Management
     private func generateNextTetromino() {
-        currentTetromino = nextTetromino
-        nextTetromino = TetrominoFactory.generate()
+        currentTetromino = nextTetrominos.removeFirst()
+        nextTetrominos.append(TetrominoFactory.generate())
         canHoldTetromino = true
-        
+        cancelLockDelay()
+
         currentTetromino.shape = currentTetromino.rotations[0]
         currentTetromino.rotationState = 0
         currentTetromino.position = spawnPositionFor(currentTetromino)
-        
+
         if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
             state = .gameOver
             isSessionSaved = false
@@ -114,14 +120,52 @@ class GameManager {
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
-        } else {
-            lockTetrominoInPlace()
-            clearFullRows()
-            generateNextTetromino()
+            cancelLockDelay()
+        } else if lockDelayTask == nil {
+            // Piece hit the surface for the first time — start lock delay
+            startLockDelay()
         }
+        // Keep gravity running so piece falls if surface disappears
         if state == .playing {
             startGameLoop(withSoftDrop: isSoftDropping)
         }
+    }
+
+    // MARK: - Lock Delay
+
+    private var isOnSurface: Bool {
+        let below = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
+        return !isValidTetrominoPosition(tetromino: currentTetromino, at: below)
+    }
+
+    private func startLockDelay() {
+        lockDelayTask?.cancel()
+        lockDelayTask = Task {
+            try? await Task.sleep(for: .seconds(lockDelayInterval))
+            guard !Task.isCancelled, state == .playing else { return }
+            lockTetrominoInPlace()
+            clearFullRows()
+            generateNextTetromino()
+            if state == .playing { startGameLoop() }
+        }
+    }
+
+    private func resetLockDelay() {
+        guard lockDelayTask != nil else { return }
+        if isOnSurface {
+            if lockDelayResetCount < maxLockDelayResets {
+                lockDelayResetCount += 1
+                startLockDelay()
+            }
+        } else {
+            cancelLockDelay()
+        }
+    }
+
+    private func cancelLockDelay() {
+        lockDelayTask?.cancel()
+        lockDelayTask = nil
+        lockDelayResetCount = 0
     }
 
     private func lockTetrominoInPlace() {
@@ -233,6 +277,7 @@ class GameManager {
             case .pause:
                 state = .paused
                 stopGameLoop()
+                cancelLockDelay()
                 saveGameSession()
             case .resume:
                 state = .playing
@@ -256,10 +301,9 @@ class GameManager {
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
-        } else {
-            lockTetrominoInPlace()
-            clearFullRows()
-            generateNextTetromino()
+            cancelLockDelay()
+        } else if lockDelayTask == nil {
+            startLockDelay()
         }
         if state == .playing {
             startGameLoop(withSoftDrop: true)
@@ -268,6 +312,7 @@ class GameManager {
 
     func hardDrop() {
         guard state == .playing else { return }
+        cancelLockDelay()
         // Move current piece to the ghost landing position instantly
         let g = ghostTetromino
         currentTetromino.position = g.position
@@ -284,7 +329,10 @@ class GameManager {
         let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + deltaX)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
-            startGameLoop()
+            resetLockDelay()
+            if lockDelayTask == nil {
+                startGameLoop()
+            }
         }
     }
 
@@ -326,13 +374,10 @@ class GameManager {
 
     private func rotateTetromino() {
         guard state == .playing else { return }
+        let previousState = currentTetromino.rotationState
         currentTetromino.rotate(gameBoard: gameBoard)
-        // Clamp rotation state to available rotations to avoid non-standard states
-        if currentTetromino.rotationState >= currentTetromino.rotations.count {
-            currentTetromino.rotationState = currentTetromino.rotations.count - 1
-        }
-        if currentTetromino.rotationState < 0 {
-            currentTetromino.rotationState = 0
+        if currentTetromino.rotationState != previousState {
+            resetLockDelay()
         }
     }
 }
