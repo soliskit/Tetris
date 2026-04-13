@@ -131,7 +131,7 @@ struct ModelTests {
                 score: 500,
                 level: 2,
                 currentTetromino: TetrominoFactory.generate(),
-                nextTetromino: TetrominoFactory.generate(),
+                nextTetrominos: [TetrominoFactory.generate(), TetrominoFactory.generate(), TetrominoFactory.generate()],
                 heldTetromino: nil,
                 canHoldTetromino: true
             )
@@ -156,7 +156,7 @@ struct ModelTests {
                 score: 1200,
                 level: 3,
                 currentTetromino: TetrominoFactory.generate(),
-                nextTetromino: TetrominoFactory.generate(),
+                nextTetrominos: [TetrominoFactory.generate(), TetrominoFactory.generate(), TetrominoFactory.generate()],
                 heldTetromino: held,
                 canHoldTetromino: false
             )

@@ -11,6 +11,7 @@ struct TetrominoPreview: View {
     private let columns: Int = 6
     private let rows: Int = 6
     var tetromino: Tetromino?
+    var size: CGFloat = 100
 
     var body: some View {
         GeometryReader { geometry in
@@ -38,7 +39,7 @@ struct TetrominoPreview: View {
             }
             .frame(width: boardWidth, height: boardHeight)
         }
-        .frame(width: 100, height: 100)
+        .frame(width: size, height: size)
         .contentShape(Rectangle())
         .clipped()
         .glassEffect(.regular, in: .rect(cornerRadius: 16))

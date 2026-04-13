@@ -92,15 +92,23 @@ class GameControllerManager {
         }
     }
 
+    /// DAS (Delayed Auto Shift) — initial delay before auto-repeat starts.
+    private let dasDelay: Duration = .milliseconds(167)
+    /// ARR (Auto Repeat Rate) — interval between repeated moves.
+    private let arrInterval: Duration = .milliseconds(33)
+
     private func startMoving(_ direction: Direction) {
+        guard movementDirection != direction else { return }
         movementDirection = direction
         movementTask?.cancel()
         let action: PlayerAction = direction == .left ? .moveLeft : .moveRight
         gameManager?.handleAction(action)
         movementTask = Task {
+            // DAS: initial delay before auto-repeat
+            try? await Task.sleep(for: dasDelay)
+            guard !Task.isCancelled else { return }
+            // ARR: fast repeat
             while !Task.isCancelled {
-                try? await Task.sleep(for: .milliseconds(100))
-                guard !Task.isCancelled else { return }
                 switch movementDirection {
                     case .left:
                         gameManager?.handleAction(.moveLeft)
@@ -109,6 +117,8 @@ class GameControllerManager {
                     case .none:
                         break
                 }
+                try? await Task.sleep(for: arrInterval)
+                guard !Task.isCancelled else { return }
             }
         }
     }

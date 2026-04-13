@@ -45,13 +45,18 @@ struct ContentView: View {
                     .padding(.vertical, 12)
                     .glassEffect(.regular, in: .capsule)
 
-                    HStack {
-                        TetrominoPreview(tetromino: gameManager.heldTetromino)
+                    HStack(alignment: .top) {
+                        TetrominoPreview(tetromino: gameManager.heldTetromino, size: 60)
                             .onTapGesture {
                                 gameManager.handleAction(.hold)
                             }
                         Spacer()
-                        TetrominoPreview(tetromino: gameManager.nextTetromino)
+                        HStack(spacing: 4) {
+                            ForEach(Array(gameManager.nextTetrominos.prefix(3).enumerated()), id: \.element.id) { index, tetromino in
+                                TetrominoPreview(tetromino: tetromino, size: index == 0 ? 60 : 44)
+                                    .opacity(index == 0 ? 1.0 : 0.6)
+                            }
+                        }
                     }
 
                     GameBoardView(gameManager: gameManager, horizontalDragOffset: horizontalDragOffset)

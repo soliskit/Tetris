@@ -12,7 +12,7 @@ struct GameSession: Codable, Sendable {
     var score: Int
     var level: Int
     var currentTetromino: Tetromino
-    var nextTetromino: Tetromino
+    var nextTetrominos: [Tetromino]
     var heldTetromino: Tetromino?
     var canHoldTetromino: Bool
 }

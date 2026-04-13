@@ -159,9 +159,12 @@ struct GameManagerTests {
         #expect(manager.currentTetromino.rotationState == originalState)
     }
 
-    @Test func nextTetrominoIsAssigned() {
+    @Test func nextTetrominosAreAssigned() {
         let manager = GameManager()
-        #expect(manager.nextTetromino.shape.isEmpty == false)
+        #expect(manager.nextTetrominos.count == 3)
+        for tetromino in manager.nextTetrominos {
+            #expect(!tetromino.shape.isEmpty)
+        }
     }
 
     @Test func currentTetrominoIsAssigned() {
