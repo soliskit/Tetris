@@ -7,10 +7,20 @@
 
 import SwiftUI
 
+@MainActor
 struct TetrominoFactory {
     
+    private static var bag: [Tetromino] = []
+    
     static func generate() -> Tetromino {
-        let tetronimos: [Tetromino] = [
+        if bag.isEmpty {
+            bag = allPieces().shuffled()
+        }
+        return bag.removeFirst()
+    }
+    
+    private static func allPieces() -> [Tetromino] {
+        return [
             // I Shape
             Tetromino(
                 shape: [
@@ -44,37 +54,32 @@ struct TetrominoFactory {
             ),
             // T Shape
             Tetromino(
-                shape: [
-                    [false, true, false],
-                    [true, true, true],
-                    [false, false, false]
-                ],
+                shape: [[false, true,  false], [true,  true,  true ], [false, false, false]],
                 color: CustomColor(from: .purple),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, true, false], [true, true, true], [false, false, false]],
-                    [[true, false], [true, true], [true, false]],
-                    [[false, false, false], [true, true, true], [false, true, false]],
-                    [[false, true], [true, true], [false, true]]
+                    [[false, true,  false], [true,  true,  true ], [false, false, false]],
+                    [[false, true,  false], [false, true,  true ], [false, true,  false]],
+                    [[false, false, false], [true,  true,  true ], [false, true,  false]],
+                    [[false, true,  false], [true,  true,  false], [false, true,  false]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: -1, column: 1), Position(row: 2, column: 0), Position(row: 2, column: 1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: 1), Position(row: 1, column: 1), Position(row: -2, column: 0), Position(row: -2, column: 1)],
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: -1, column: -1), Position(row: 2, column: 0), Position(row: 2, column: -1)]
-                ]),
+                ]
+            ),
             // S Shape
             Tetromino(
-                shape: [
-                    [false, true, true],
-                    [true, true, false],
-                    [false, false, false]
-                ],
+                shape: [[false, true,  true ], [true,  true,  false], [false, false, false]],
                 color: CustomColor(from: .green),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, true, true], [true, true, false], [false, false, false]],
-                    [[true, false], [true, true], [false, true]]
+                    [[false, true,  true ], [true,  true,  false], [false, false, false]],
+                    [[false, true,  false], [false, true,  true ], [false, false, true ]],
+                    [[false, false, false], [false, true,  true ], [true,  true,  false]],
+                    [[true,  false, false], [true,  true,  false], [false, true,  false]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
@@ -85,16 +90,14 @@ struct TetrominoFactory {
             ),
             // Z Shape
             Tetromino(
-                shape: [
-                    [true, true, false],
-                    [false, true, true],
-                    [false, false, false]
-                ],
+                shape: [[true,  true,  false], [false, true,  true ], [false, false, false]],
                 color: CustomColor(from: .red),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[true, true, false], [false, true, true], [false, false, false]],
-                    [[false, true], [true, true], [true, false]]
+                    [[true,  true,  false], [false, true,  true ], [false, false, false]],
+                    [[false, false, true ], [false, true,  true ], [false, true,  false]],
+                    [[false, false, false], [true,  true,  false], [false, true,  true ]],
+                    [[false, true,  false], [true,  true,  false], [true,  false, false]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
@@ -105,18 +108,14 @@ struct TetrominoFactory {
             ),
             // J Shape
             Tetromino(
-                shape: [
-                    [true, false, false],
-                    [true, true, true],
-                    [false, false, false]
-                ],
+                shape: [[true,  false, false], [true,  true,  true ], [false, false, false]],
                 color: CustomColor(from: .blue),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[true, false, false], [true, true, true], [false, false, false]],
-                    [[true, true], [true, false], [true, false]],
-                    [[false, false, false], [true, true, true], [false, false, true]],
-                    [[false, true], [false, true], [true, true]]
+                    [[true,  false, false], [true,  true,  true ], [false, false, false]],
+                    [[false, true,  true ], [false, true,  false], [false, true,  false]],
+                    [[false, false, false], [true,  true,  true ], [false, false, true ]],
+                    [[false, true,  false], [false, true,  false], [true,  true,  false]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
@@ -127,18 +126,14 @@ struct TetrominoFactory {
             ),
             // L Shape
             Tetromino(
-                shape: [
-                    [false, false, true],
-                    [true, true, true],
-                    [false, false, false]
-                ],
+                shape: [[false, false, true ], [true,  true,  true ], [false, false, false]],
                 color: CustomColor(from: .orange),
                 position: Position(row: 0, column: 4),
                 rotations: [
-                    [[false, false, true], [true, true, true], [false, false, false]],
-                    [[true, false], [true, false], [true, true]],
-                    [[false, false, false], [true, true, true], [true, false, false]],
-                    [[true, true], [false, true], [false, true]]
+                    [[false, false, true ], [true,  true,  true ], [false, false, false]],
+                    [[false, true,  false], [false, true,  false], [false, true,  true ]],
+                    [[false, false, false], [true,  true,  true ], [true,  false, false]],
+                    [[true,  true,  false], [false, true,  false], [false, true,  false]]
                 ],
                 wallKickData: [
                     [Position(row: 0, column: 0), Position(row: 0, column: -1), Position(row: 1, column: -1), Position(row: -2, column: 0), Position(row: -2, column: -1)],
@@ -148,9 +143,6 @@ struct TetrominoFactory {
                 ]
             )
         ]
-        guard let selectedTetronimo = tetronimos.randomElement() else {
-            fatalError("Unable to generate Tetromino")
-        }
-        return selectedTetronimo
     }
 }
+

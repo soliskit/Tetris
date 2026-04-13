@@ -8,7 +8,7 @@
 import Foundation
 
 struct GameSession: Codable, Sendable {
-    var gameBoard: [[GameCell?]]
+    var gameBoard: [[GameCell]]
     var score: Int
     var level: Int
     var currentTetromino: Tetromino

@@ -8,10 +8,11 @@
 import Testing
 @testable import Tetris
 
+@MainActor
 @Suite("Tetromino")
 struct TetrominoTests {
 
-    let emptyBoard: [[GameCell?]] = Array(
+    let emptyBoard: [[GameCell]] = Array(
         repeating: Array(repeating: GameCell(), count: 10),
         count: 20
     )
