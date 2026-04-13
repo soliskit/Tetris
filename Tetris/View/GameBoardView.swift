@@ -44,7 +44,6 @@ struct GameBoardView: View {
                                     .frame(width: blockSize - 1, height: blockSize - 1)
                                     .position(x: blockSize * tetrominoColumn + blockSize / 2 + horizontalDragOffset,
                                               y: blockSize * tetrominoRow + blockSize / 2)
-                                    .animation(.interpolatingSpring(duration: 0.08, bounce: 0), value: tetromino.position.column)
                                     .animation(.interpolatingSpring(duration: 0.12, bounce: 0), value: tetromino.position.row)
                             }
                         }
