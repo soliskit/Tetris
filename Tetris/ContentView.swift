@@ -78,8 +78,21 @@ struct ContentView: View {
 
                                     // Fractional offset within the current cell for smooth visual tracking
                                     let fractional = gesture.translation.width - CGFloat(dragCellOffset) * cellWidth
-                                    // Clamp to half a cell so it doesn't visually overshoot
-                                    horizontalDragOffset = max(-cellWidth * 0.5, min(cellWidth * 0.5, fractional))
+                                    let clamped = max(-cellWidth * 0.5, min(cellWidth * 0.5, fractional))
+
+                                    // Clamp further so the piece doesn't visually leave the board
+                                    let tetromino = gameManager.currentTetromino
+                                    let leftmostCol = tetromino.shape.enumerated().reduce(Int.max) { result, row in
+                                        let minInRow = row.element.enumerated().filter(\.element).map(\.offset).min() ?? Int.max
+                                        return min(result, minInRow)
+                                    }
+                                    let rightmostCol = tetromino.shape.enumerated().reduce(Int.min) { result, row in
+                                        let maxInRow = row.element.enumerated().filter(\.element).map(\.offset).max() ?? Int.min
+                                        return max(result, maxInRow)
+                                    }
+                                    let leftPixelMargin = CGFloat(tetromino.position.column + leftmostCol) * cellWidth
+                                    let rightPixelMargin = (CGFloat(10 - 1 - (tetromino.position.column + rightmostCol))) * cellWidth
+                                    horizontalDragOffset = max(-leftPixelMargin, min(rightPixelMargin, clamped))
 
                                     let newRowOffset = max(0, Int(gesture.translation.height / cellWidth))
                                     let rowDelta = newRowOffset - dragRowOffset
