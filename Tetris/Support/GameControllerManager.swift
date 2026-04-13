@@ -13,6 +13,8 @@ class GameControllerManager {
     private var movementDirection: Direction?
     private var movementTask: Task<Void, Never>?
     private var connectionTask: Task<Void, Never>?
+    private var softDropTask: Task<Void, Never>? = nil
+    private var softDropKeyTask: Task<Void, Never>? = nil
 
     init(gameManager: GameManager) {
         self.gameManager = gameManager
@@ -22,6 +24,8 @@ class GameControllerManager {
     deinit {
         connectionTask?.cancel()
         movementTask?.cancel()
+        softDropTask?.cancel()
+        softDropKeyTask?.cancel()
     }
 
     private func setupControllers() {
@@ -44,15 +48,17 @@ class GameControllerManager {
             let menuPressed = gamepad.buttonMenu.isPressed
             let bPressed = gamepad.buttonB.isPressed
             let xPressed = gamepad.buttonX.isPressed
+            let aPressed = gamepad.buttonA.isPressed
             let xAxis = gamepad.leftThumbstick.xAxis.value
+            let yAxis = gamepad.leftThumbstick.yAxis.value
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                self.processInput(menuPressed: menuPressed, bPressed: bPressed, xPressed: xPressed, xAxis: xAxis)
+                self.processInput(menuPressed: menuPressed, bPressed: bPressed, xPressed: xPressed, aPressed: aPressed, xAxis: xAxis, yAxis: yAxis)
             }
         }
     }
 
-    private func processInput(menuPressed: Bool, bPressed: Bool, xPressed: Bool, xAxis: Float) {
+    private func processInput(menuPressed: Bool, bPressed: Bool, xPressed: Bool, aPressed: Bool, xAxis: Float, yAxis: Float) {
         if menuPressed {
             if gameManager?.state == .playing {
                 gameManager?.handleAction(.pause)
@@ -65,6 +71,16 @@ class GameControllerManager {
         }
         if xPressed {
             gameManager?.handleAction(.hold)
+        }
+
+        if aPressed {
+            gameManager?.hardDrop()
+        }
+
+        if yAxis < -0.5 {
+            startSoftDrop()
+        } else {
+            stopSoftDrop()
         }
 
         if xAxis < -0.5 {
@@ -101,5 +117,46 @@ class GameControllerManager {
         movementTask?.cancel()
         movementTask = nil
         movementDirection = nil
+    }
+
+    private func startSoftDrop() {
+        guard softDropTask == nil else { return }
+        softDropTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(50))
+                await MainActor.run { [weak self] in
+                    self?.gameManager?.softDrop()
+                }
+            }
+        }
+    }
+
+    private func stopSoftDrop() {
+        softDropTask?.cancel()
+        softDropTask = nil
+    }
+
+// MARK: - Keyboard/Touch Bridging
+    func handleKeyDownLeft() { gameManager?.handleAction(.moveLeft) }
+    func handleKeyDownRight() { gameManager?.handleAction(.moveRight) }
+    func handleKeyDownRotate() { gameManager?.handleAction(.rotate) }
+    func handleKeyDownHold() { gameManager?.handleAction(.hold) }
+    func handleKeyDownHardDrop() { gameManager?.hardDrop() }
+
+    func startSoftDropKey() {
+        guard softDropKeyTask == nil else { return }
+        softDropKeyTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(50))
+                await MainActor.run { [weak self] in
+                    self?.gameManager?.softDrop()
+                }
+            }
+        }
+    }
+
+    func stopSoftDropKey() {
+        softDropKeyTask?.cancel()
+        softDropKeyTask = nil
     }
 }

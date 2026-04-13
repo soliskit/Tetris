@@ -28,18 +28,16 @@ struct Tetromino: Identifiable, Equatable, Codable, Sendable {
     
     /// Checks if the Tetromino fits within the given game board without overlapping filled cells.
     ///
-    /// - Parameter gameBoard: A 2D array representing the game board, where each cell may contain a `GameCell`.
+    /// - Parameter gameBoard: A 2D array representing the game board, where each cell contains a `GameCell`.
     /// - Returns: A Boolean value indicating whether the Tetromino fits within the game board.
-    func fitsWithin(gameBoard: [[GameCell?]]) -> Bool {
+    func fitsWithin(gameBoard: [[GameCell]]) -> Bool {
         return !shape.enumerated().contains { rowIndex, row in
             row.enumerated().contains { columnIndex, block in
                 guard block else { return false }
                 let boardX = position.column + columnIndex
                 let boardY = position.row + rowIndex
-                if let gameBoardCell = gameBoard[safeRow: boardY, safeColumn: boardX] {
-                    return gameBoardCell?.isFilled == true
-                }
-                return true
+                guard let cell = gameBoard[safeRow: boardY, safeColumn: boardX] else { return true }
+                return cell.isFilled
             }
         }
     }
@@ -50,7 +48,7 @@ struct Tetromino: Identifiable, Equatable, Codable, Sendable {
     /// it attempts a counter-clockwise rotation. Wall kick data is used to test possible positions for each rotation.
     ///
     /// - Parameter gameBoard: A 2D array representing the game board to check for fit during rotation.
-    mutating func rotate(gameBoard: [[GameCell?]]) {
+    mutating func rotate(gameBoard: [[GameCell]]) {
         let clockwiseRotationState = (rotationState + 1) % rotations.count
         let clockwiseShape = rotations[clockwiseRotationState]
         let clockwiseTestPositions = wallKickData[rotationState].map {

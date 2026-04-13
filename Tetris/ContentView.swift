@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var dragCellOffset: Int = 0
     @State private var dragRowOffset: Int = 0
     @State private var cellWidth: CGFloat = 32
+    @State private var horizontalDragOffset: CGFloat = 0
 
     var body: some View {
         ZStack {
@@ -53,7 +54,7 @@ struct ContentView: View {
                         TetrominoPreview(tetromino: gameManager.nextTetromino)
                     }
 
-                    GameBoardView(gameManager: gameManager)
+                    GameBoardView(gameManager: gameManager, horizontalDragOffset: horizontalDragOffset)
                         .aspectRatio(0.5, contentMode: .fit)
                         .onGeometryChange(for: CGFloat.self) { proxy in
                             proxy.size.width / 10
@@ -63,7 +64,7 @@ struct ContentView: View {
                         .padding(8)
                         .glassEffect(.regular, in: .rect(cornerRadius: 20))
                         .gesture(
-                            DragGesture(minimumDistance: 5)
+                            DragGesture(minimumDistance: 3)
                                 .onChanged { gesture in
                                     let newColOffset = Int(gesture.translation.width / cellWidth)
                                     let colDelta = newColOffset - dragCellOffset
@@ -74,6 +75,11 @@ struct ContentView: View {
                                         }
                                         dragCellOffset = newColOffset
                                     }
+
+                                    // Fractional offset within the current cell for smooth visual tracking
+                                    let fractional = gesture.translation.width - CGFloat(dragCellOffset) * cellWidth
+                                    // Clamp to half a cell so it doesn't visually overshoot
+                                    horizontalDragOffset = max(-cellWidth * 0.5, min(cellWidth * 0.5, fractional))
 
                                     let newRowOffset = max(0, Int(gesture.translation.height / cellWidth))
                                     let rowDelta = newRowOffset - dragRowOffset
@@ -87,6 +93,9 @@ struct ContentView: View {
                                 .onEnded { _ in
                                     dragCellOffset = 0
                                     dragRowOffset = 0
+                                    withAnimation(.interpolatingSpring(duration: 0.08, bounce: 0)) {
+                                        horizontalDragOffset = 0
+                                    }
                                 }
                         )
                         .onTapGesture {

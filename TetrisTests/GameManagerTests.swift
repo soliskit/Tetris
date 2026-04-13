@@ -27,7 +27,7 @@ struct GameManagerTests {
         let manager = GameManager()
         let allEmpty = manager.gameBoard.allSatisfy { row in
             row.allSatisfy { cell in
-                cell?.isFilled == false
+                cell.isFilled == false
             }
         }
         #expect(allEmpty)
@@ -39,10 +39,10 @@ struct GameManagerTests {
         #expect(manager.gameBoard.first?.count == 10)
     }
 
-    @Test func newGameSetsPausedState() {
+    @Test func newGameSetsPlayingState() {
         let manager = GameManager()
         manager.handleAction(.newGame)
-        #expect(manager.state == .paused)
+        #expect(manager.state == .playing)
     }
 
     @Test func newGameResetsScore() {
@@ -97,6 +97,7 @@ struct GameManagerTests {
     @Test func moveDoesNothingWhenPaused() {
         let manager = GameManager()
         manager.handleAction(.newGame)
+        manager.handleAction(.pause)
 
         let originalColumn = manager.currentTetromino.position.column
         manager.handleAction(.moveLeft)
@@ -151,6 +152,7 @@ struct GameManagerTests {
     @Test func rotateDoesNothingWhenNotPlaying() {
         let manager = GameManager()
         manager.handleAction(.newGame)
+        manager.handleAction(.pause)
 
         let originalState = manager.currentTetromino.rotationState
         manager.handleAction(.rotate)

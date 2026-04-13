@@ -11,6 +11,8 @@ struct GameBoardView: View {
     private let rows: Int = 20
     private let columns: Int = 10
     var gameManager: GameManager
+    /// Fractional horizontal drag offset in points, applied visually to the active piece.
+    var horizontalDragOffset: CGFloat = 0
 
     var body: some View {
         GeometryReader { geometry in
@@ -21,9 +23,9 @@ struct GameBoardView: View {
 
                 ForEach(0..<rows, id: \.self) { row in
                     ForEach(0..<columns, id: \.self) { column in
-                        if let cell = gameManager.gameBoard[safeRow: row, safeColumn: column], cell?.isFilled == true {
+                        if let cell = gameManager.gameBoard[safeRow: row, safeColumn: column], cell.isFilled == true {
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(cell?.color?.value ?? .clear)
+                                .fill(cell.color?.value ?? .clear)
                                 .frame(width: blockSize - 1, height: blockSize - 1)
                                 .position(x: blockSize * CGFloat(column) + blockSize / 2, y: blockSize * CGFloat(row) + blockSize / 2)
                         }
@@ -40,8 +42,10 @@ struct GameBoardView: View {
                                 RoundedRectangle(cornerRadius: 3)
                                     .fill(tetromino.color.value)
                                     .frame(width: blockSize - 1, height: blockSize - 1)
-                                    .position(x: blockSize * tetrominoColumn + blockSize / 2,
+                                    .position(x: blockSize * tetrominoColumn + blockSize / 2 + horizontalDragOffset,
                                               y: blockSize * tetrominoRow + blockSize / 2)
+                                    .animation(.interpolatingSpring(duration: 0.08, bounce: 0), value: tetromino.position.column)
+                                    .animation(.interpolatingSpring(duration: 0.12, bounce: 0), value: tetromino.position.row)
                             }
                         }
                     }

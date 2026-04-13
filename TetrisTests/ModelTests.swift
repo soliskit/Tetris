@@ -119,9 +119,10 @@ struct ModelTests {
     // MARK: - GameSession
 
     @Suite("GameSession")
+    @MainActor
     struct GameSessionTests {
         @Test func codableRoundTrip() throws {
-            let board: [[GameCell?]] = Array(
+            let board: [[GameCell]] = Array(
                 repeating: Array(repeating: GameCell(), count: 10),
                 count: 20
             )
@@ -145,7 +146,7 @@ struct ModelTests {
         }
 
         @Test func codableRoundTripWithHeldTetromino() throws {
-            let board: [[GameCell?]] = Array(
+            let board: [[GameCell]] = Array(
                 repeating: Array(repeating: GameCell(), count: 10),
                 count: 20
             )

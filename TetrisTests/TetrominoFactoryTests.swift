@@ -9,6 +9,7 @@ import Testing
 @testable import Tetris
 
 @Suite("Tetromino Factory")
+@MainActor
 struct TetrominoFactoryTests {
 
     @Test func generatesTetrominoWithNonEmptyShape() {
@@ -42,7 +43,7 @@ struct TetrominoFactoryTests {
     }
 
     @Test func generatedTetrominoFitsEmptyBoard() {
-        let board: [[GameCell?]] = Array(
+        let board: [[GameCell]] = Array(
             repeating: Array(repeating: GameCell(), count: 10),
             count: 20
         )

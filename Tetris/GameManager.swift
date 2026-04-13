@@ -23,15 +23,17 @@ class GameManager {
     var nextTetromino: Tetromino
     var heldTetromino: Tetromino?
     var canHoldTetromino: Bool = true
-    var gameBoard: [[GameCell?]]
+    var gameBoard: [[GameCell]]
     var state: GameState = .gameOver
     var score: Int = 0
     var level: Int = 1
     private var standardDropInterval: TimeInterval {
-        max(0.3, 0.7 - (0.00001 * Double(level - 1)))
+        // Base interval decreases slightly with level, clamped to a sensible minimum
+        max(0.25, 0.7 - (0.02 * Double(level - 1)))
     }
     private var quickDropInterval: TimeInterval {
-        standardDropInterval * 0.000001
+        // Soft drop should be faster than standard but not instant
+        max(0.03, standardDropInterval * 0.25)
     }
 
     // MARK: - Initialization
@@ -40,6 +42,14 @@ class GameManager {
         nextTetromino = TetrominoFactory.generate()
         gameBoard = Array(repeating: Array(repeating: GameCell(), count: columns), count: rows)
         gameControllerManager = GameControllerManager(gameManager: self)
+    }
+    
+    // MARK: - Spawn Position
+    private func spawnPositionFor(_ tetromino: Tetromino) -> Position {
+        let width = tetromino.shape.first?.count ?? 4
+        let spawnColumn = max(0, (columns - width) / 2)
+        let spawnRow = 0
+        return Position(row: spawnRow, column: spawnColumn)
     }
 
     // MARK: - Game State Management
@@ -52,25 +62,28 @@ class GameManager {
         nextTetromino = TetrominoFactory.generate()
         heldTetromino = nil
         canHoldTetromino = true
+        isSessionSaved = false
     }
 
     private func loadGameSession() {
-        if let savedGameSessionData = UserDefaults.standard.data(forKey: "savedGameSession"),
-           let session = try? JSONDecoder().decode(GameSession.self, from: savedGameSessionData) {
-            state = .paused
-            gameBoard = session.gameBoard
-            score = session.score
-            level = session.level
-            currentTetromino = session.currentTetromino
-            nextTetromino = session.nextTetromino
-            heldTetromino = session.heldTetromino
-            canHoldTetromino = session.canHoldTetromino
+        guard isSessionSaved, let savedData = UserDefaults.standard.data(forKey: "savedGameSession"),
+              let session = try? JSONDecoder().decode(GameSession.self, from: savedData) else {
+            // No valid saved session
+            isSessionSaved = false
+            return
         }
+        state = .paused
+        gameBoard = session.gameBoard
+        score = session.score
+        level = session.level
+        currentTetromino = session.currentTetromino
+        nextTetromino = session.nextTetromino
+        heldTetromino = session.heldTetromino
+        canHoldTetromino = session.canHoldTetromino
     }
 
     private func saveGameSession() {
         let gameSession = GameSession(gameBoard: gameBoard, score: score, level: level, currentTetromino: currentTetromino, nextTetromino: nextTetromino, heldTetromino: heldTetromino, canHoldTetromino: canHoldTetromino)
-
         if let encodedData = try? JSONEncoder().encode(gameSession) {
             UserDefaults.standard.set(encodedData, forKey: "savedGameSession")
             isSessionSaved = true
@@ -84,8 +97,14 @@ class GameManager {
         currentTetromino = nextTetromino
         nextTetromino = TetrominoFactory.generate()
         canHoldTetromino = true
+        
+        currentTetromino.shape = currentTetromino.rotations[0]
+        currentTetromino.rotationState = 0
+        currentTetromino.position = spawnPositionFor(currentTetromino)
+        
         if !isValidTetrominoPosition(tetromino: currentTetromino, at: currentTetromino.position) {
             state = .gameOver
+            isSessionSaved = false
             stopGameLoop()
         }
     }
@@ -100,7 +119,9 @@ class GameManager {
             clearFullRows()
             generateNextTetromino()
         }
-        startGameLoop(withSoftDrop: isSoftDropping)
+        if state == .playing {
+            startGameLoop(withSoftDrop: isSoftDropping)
+        }
     }
 
     private func lockTetrominoInPlace() {
@@ -121,7 +142,7 @@ class GameManager {
     private func clearFullRows() {
         let scores = [1: 100, 2: 300, 3: 500, 4: 800]
         let completedLineIndices = gameBoard.indices.filter { row in
-            gameBoard[row].allSatisfy { $0?.isFilled ?? false }
+            gameBoard[row].allSatisfy { $0.isFilled }
         }
         guard !completedLineIndices.isEmpty else { return }
         completedLineIndices.reversed().forEach { index in
@@ -141,11 +162,53 @@ class GameManager {
         let newTetromino = Tetromino(shape: tetromino.shape, color: tetromino.color, position: position, rotations: tetromino.rotations, wallKickData: tetromino.wallKickData)
         return newTetromino.fitsWithin(gameBoard: gameBoard)
     }
+    
+    // MARK: - Ghost Piece
+    /// A projection of the current tetromino at its landing position.
+    var ghostTetromino: Tetromino {
+        var ghost = Tetromino(
+            shape: currentTetromino.shape,
+            color: currentTetromino.color,
+            position: currentTetromino.position,
+            rotations: currentTetromino.rotations,
+            wallKickData: currentTetromino.wallKickData
+        )
+        // Match current rotation state exactly
+        ghost.rotationState = currentTetromino.rotationState
+        ghost.shape = ghost.rotations[min(max(ghost.rotationState, 0), ghost.rotations.count - 1)]
+
+        // Drop the ghost straight down until it no longer fits
+        while true {
+            let nextPos = Position(row: ghost.position.row + 1, column: ghost.position.column)
+            if isValidTetrominoPosition(tetromino: ghost, at: nextPos) {
+                ghost.position = nextPos
+            } else {
+                break
+            }
+        }
+        return ghost
+    }
+
+    /// Returns the board coordinates occupied by the ghost tetromino for rendering.
+    func ghostCells() -> [(row: Int, col: Int)] {
+        let g = ghostTetromino
+        var coords: [(Int, Int)] = []
+        for (y, row) in g.shape.enumerated() {
+            for (x, block) in row.enumerated() where block {
+                let r = g.position.row + y
+                let c = g.position.column + x
+                if gameBoard[safeRow: r, safeColumn: c] != nil {
+                    coords.append((r, c))
+                }
+            }
+        }
+        return coords
+    }
 
     // MARK: - Game Loop (Swift Concurrency)
     private func startGameLoop(withSoftDrop: Bool = false) {
         stopGameLoop()
-        let interval = withSoftDrop ? quickDropInterval : standardDropInterval / Double(level)
+        let interval = withSoftDrop ? quickDropInterval : standardDropInterval
         gameLoopTask = Task {
             try? await Task.sleep(for: .seconds(interval))
             guard !Task.isCancelled, state == .playing else { return }
@@ -163,6 +226,8 @@ class GameManager {
         switch action {
             case .newGame:
                 resetGameSession()
+                state = .playing
+                startGameLoop()
             case .continueGame:
                 loadGameSession()
             case .pause:
@@ -181,12 +246,13 @@ class GameManager {
             case .rotate:
                 rotateTetromino()
             case .drop:
-                dropTetromino(isSoftDropping: true)
+                hardDrop()
         }
     }
 
     func softDrop() {
         guard state == .playing else { return }
+        stopGameLoop()
         let newPosition = Position(row: currentTetromino.position.row + 1, column: currentTetromino.position.column)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
@@ -194,6 +260,21 @@ class GameManager {
             lockTetrominoInPlace()
             clearFullRows()
             generateNextTetromino()
+        }
+        if state == .playing {
+            startGameLoop(withSoftDrop: true)
+        }
+    }
+
+    func hardDrop() {
+        guard state == .playing else { return }
+        // Move current piece to the ghost landing position instantly
+        let g = ghostTetromino
+        currentTetromino.position = g.position
+        lockTetrominoInPlace()
+        clearFullRows()
+        generateNextTetromino()
+        if state == .playing {
             startGameLoop()
         }
     }
@@ -203,37 +284,55 @@ class GameManager {
         let newPosition = Position(row: currentTetromino.position.row, column: currentTetromino.position.column + deltaX)
         if isValidTetrominoPosition(tetromino: currentTetromino, at: newPosition) {
             currentTetromino.position = newPosition
+            startGameLoop()
         }
     }
 
     private func holdTetromino() {
         guard state == .playing, canHoldTetromino else { return }
+        stopGameLoop()
         if var tetrominoToSwap = heldTetromino {
             // Reset held piece to spawn state
             tetrominoToSwap.shape = tetrominoToSwap.rotations[0]
             tetrominoToSwap.rotationState = 0
-            let spawnPosition = tetrominoToSwap.position
-            guard isValidTetrominoPosition(tetromino: tetrominoToSwap, at: spawnPosition) else { return }
+            let spawnPos = spawnPositionFor(tetrominoToSwap)
+            // Ensure swapped-in piece can spawn; otherwise, game over
+            if !isValidTetrominoPosition(tetromino: tetrominoToSwap, at: spawnPos) {
+                state = .gameOver
+                isSessionSaved = false
+                return
+            }
             // Store current piece (reset to spawn state)
             var pieceToHold = currentTetromino
             pieceToHold.shape = pieceToHold.rotations[0]
             pieceToHold.rotationState = 0
+            pieceToHold.position = spawnPositionFor(pieceToHold)
             heldTetromino = pieceToHold
             currentTetromino = tetrominoToSwap
-            currentTetromino.position = spawnPosition
+            currentTetromino.position = spawnPos
             canHoldTetromino = false
         } else {
             var pieceToHold = currentTetromino
             pieceToHold.shape = pieceToHold.rotations[0]
             pieceToHold.rotationState = 0
+            pieceToHold.position = spawnPositionFor(pieceToHold)
             heldTetromino = pieceToHold
+            // Bring in next piece freshly spawned
             generateNextTetromino()
             canHoldTetromino = false
         }
+        if state == .playing { startGameLoop() }
     }
 
     private func rotateTetromino() {
         guard state == .playing else { return }
         currentTetromino.rotate(gameBoard: gameBoard)
+        // Clamp rotation state to available rotations to avoid non-standard states
+        if currentTetromino.rotationState >= currentTetromino.rotations.count {
+            currentTetromino.rotationState = currentTetromino.rotations.count - 1
+        }
+        if currentTetromino.rotationState < 0 {
+            currentTetromino.rotationState = 0
+        }
     }
 }
