@@ -1,0 +1,6 @@
+glob_matcher: doublestar
+pre-commit:
+  commands:
+    swift-style:
+      glob: "**/*.swift"
+      run: swift format lint --strict -- {staged_files}
