@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - name: Lint the Swift sources
+        run: swift format lint --strict --recursive Tetris TetrisTests
       - name: Build and run the unit tests
         run: |
           set -euo pipefail
