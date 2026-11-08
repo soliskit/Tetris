@@ -9,9 +9,9 @@ import SwiftUI
 
 @main
 struct TetrisApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+  var body: some Scene {
+    WindowGroup {
+      ContentView()
     }
+  }
 }
