@@ -175,9 +175,9 @@ class GameManager {
   }
 
   private func lockTetrominoInPlace() {
-    currentTetromino.shape.enumerated().forEach { y, row in
-      row.enumerated().forEach { x, block in
-        guard block else { return }
+    for (y, row) in currentTetromino.shape.enumerated() {
+      for (x, block) in row.enumerated() {
+        guard block else { continue }
         let boardX = currentTetromino.position.column + x
         let boardY = currentTetromino.position.row + y
 
@@ -195,7 +195,7 @@ class GameManager {
       gameBoard[row].allSatisfy { $0.isFilled }
     }
     guard !completedLineIndices.isEmpty else { return }
-    completedLineIndices.reversed().forEach { index in
+    for index in completedLineIndices.reversed() {
       gameBoard.remove(at: index)
     }
     let newLines = Array(
